@@ -1,44 +1,31 @@
-# Web Framework
+# Core backend
 fastapi>=0.110.0
-uvicorn[standard]>=0.27.0
+uvicorn>=0.27.0
 python-multipart>=0.0.9
-
-# LLM & Embeddings
-openai>=1.0.0
-anthropic>=0.18.0
-dashscope>=1.14.0  # 通义千问
-sentence-transformers>=2.3.0
-FlagEmbedding>=1.2.0  # BGE-M3 + bge-reranker-v2-m3
-
-# Vector Database
-faiss-cpu>=1.7.4
-chromadb>=0.4.0
-rank-bm25>=0.2.2  # BM25 hybrid retrieval
-
-# Document Processing - Primary: MinerU, Fallback: Docling
-magic-pdf>=0.7.0  # MinerU - best for Chinese medical PDFs
-docling>=1.0.0    # Fallback parser for edge cases
-PyMuPDF>=1.23.0
-python-docx>=1.1.0
-pandas>=2.0.0
-openpyxl>=3.1.0
-
-# Knowledge Graph
-llama-index>=0.10.0
-llama-index-graph-stores-simple>=0.1.0
-
-# Deduplication & Compression
-text-dedup>=0.1.0  # MinHash-based deduplication
-llmlingua>=0.2.0   # Dynamic prompt compression
-
-# Agent Orchestration
-langgraph>=0.0.20
-langchain>=0.1.0
-
-# Data Processing
-numpy>=1.24.0
 pydantic>=2.5.0
 
+# Document parsing (P0: MinerU only)
+magic-pdf>=0.7.0b1  # MinerU for Chinese medical PDFs
+PyMuPDF>=1.23.0     # PDF utilities
+
+# Embedding and retrieval (P0: simple stack)
+sentence-transformers>=2.3.0  # paraphrase-multilingual-MiniLM-L12-v2
+faiss-cpu>=1.7.4              # Vector database
+
+# LLM providers
+dashscope>=1.14.0   # 通义千问
+openai>=1.0.0       # DeepSeek compatible
+
 # Utilities
+numpy>=1.24.0
+pandas>=2.0.0
 python-dotenv>=1.0.0
-aiofiles>=23.0.0
+
+# P1/P2 dependencies (documented, not installed in P0)
+# docling>=1.0.0
+# FlagEmbedding>=1.2.0  # BGE-M3
+# text-dedup>=0.1.0
+# llmlingua>=0.2.0
+# llama-index>=0.10.0
+# rank-bm25>=0.2.2
+# langgraph>=0.0.20

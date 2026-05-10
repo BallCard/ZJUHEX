@@ -62,3 +62,9 @@ textbooks-skills/
 *.faiss
 *.index
 chroma_db/
+
+# Runtime outputs
+data/runtime/
+src/backend/data/
+src/backend/report/
+report/整合报告_*.md
