@@ -12,8 +12,8 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 
-from .knowledge_graph import KnowledgeGraphBuilder
-from ..utils.paths import RUNTIME_DIR
+from services.knowledge_graph import KnowledgeGraphBuilder
+from utils.paths import RUNTIME_DIR
 
 
 class AsyncExtractor:
