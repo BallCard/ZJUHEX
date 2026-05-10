@@ -19,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from services.knowledge_graph import KnowledgeGraphBuilder
 from utils.paths import RUNTIME_DIR
 from utils.logger import setup_logger
+from config import settings
 
 logger = setup_logger(__name__)
 
@@ -40,7 +41,7 @@ class AsyncExtractor:
         logger.info(f"AsyncExtractor initialized for job {job_id}")
 
         # Initialize LLM builder (reuse existing logic)
-        self.builder = KnowledgeGraphBuilder()
+        self.builder = KnowledgeGraphBuilder(api_key=settings.deepseek_api_key)
 
     def extract_chunk(self, chunk: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """

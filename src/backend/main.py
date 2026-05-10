@@ -28,6 +28,7 @@ load_dotenv(Path(__file__).parent.parent.parent / ".env")
 import sys
 sys.path.insert(0, str(Path(__file__).parent))
 
+from config import settings
 from services.parser import parse_textbook
 from services.knowledge_graph import build_knowledge_graph, KnowledgeGraphBuilder
 from services.integration import deduplicate_knowledge_graph
@@ -36,9 +37,13 @@ from services.rag import RAGPipeline
 from services.content_detector import ContentDetector
 from services.async_extractor import AsyncExtractor
 from services.cross_textbook_integration import CrossTextbookIntegrator
+from utils.logger import setup_logger
 
 # Import unified paths
 from utils.paths import get_job_dir, REPORT_DIR, ensure_directories
+
+# Setup logger
+logger = setup_logger(__name__)
 
 # Ensure all directories exist
 ensure_directories()
@@ -290,6 +295,7 @@ def build_graph_task(job_id: str, max_chunks: int = None, chapter_num: int = 1):
             processing_chunks = chapter_chunks
 
         # Use AsyncExtractor for batch extraction with caching
+        logger.info(f"Creating AsyncExtractor for job {job_id}, API key configured: {bool(settings.deepseek_api_key and settings.deepseek_api_key != 'your_key_here')}")
         extractor = AsyncExtractor(job_id)
         extraction_results = extractor.extract_batch(processing_chunks)
 

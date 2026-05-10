@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     api_base_url: str = "http://localhost:8000"
 
     class Config:
+        env_file = str(Path(__file__).parent.parent.parent / ".env")
         env_file_encoding = "utf-8"
         case_sensitive = False
 
