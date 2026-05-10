@@ -209,6 +209,12 @@ def parse_document(job_id: str):
 
         chunks = parse_textbook(file_path)
 
+        if not chunks or len(chunks) == 0:
+            raise HTTPException(
+                status_code=400,
+                detail="No content extracted from PDF. The file may be empty, corrupted, or contain only images."
+            )
+
         # Save chunks
         chunks_path = get_job_dir(job_id) / "parsed_chunks.json"
         with open(chunks_path, 'w', encoding='utf-8') as f:
@@ -230,6 +236,9 @@ def parse_document(job_id: str):
         }
     except HTTPException:
         raise
+    except ValueError as e:
+        # PDF parsing errors (invalid format, corrupted file)
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Parse failed: {str(e)}")
 

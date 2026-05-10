@@ -73,10 +73,8 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [expandedCitation, setExpandedCitation] = useState<number | null>(null);
-  const [apiUrl, setApiUrl] = useState(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000');
+  const [apiUrl, setApiUrl] = useState('http://localhost:8000');
   const [activeTab, setActiveTab] = useState<'topology' | 'resources' | 'observation'>('topology');
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [uploadMode, setUploadMode] = useState<'single' | 'multiple'>('single');
 
   // Helpers
   const addToast = useCallback((type: 'success' | 'error', message: string) => {
@@ -274,7 +272,7 @@ export default function App() {
 
     setIsLoading(true);
     setRAGResult(null);
-
+    
     try {
       if (!apiUrl || apiUrl === 'API_ENDPOINT' || jobId === 'mock_job_id') {
         await new Promise(r => setTimeout(r, 1500)); // Immersion latency
@@ -292,148 +290,6 @@ export default function App() {
     } catch (err) {
       setRAGResult(mockRagResult);
       addToast('error', '查询协议握手失败，启用本地认知索引');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Poll job progress until completion
-  const pollJobProgress = async (jobId: string, targetStatuses: string[], maxAttempts = 60) => {
-    for (let i = 0; i < maxAttempts; i++) {
-      await new Promise(r => setTimeout(r, 2000)); // Poll every 2 seconds
-
-      try {
-        const progressRes = await apiCall(`/api/jobs/${jobId}/progress`);
-
-        if (targetStatuses.includes(progressRes.status)) {
-          return progressRes;
-        }
-
-        if (progressRes.status === 'failed') {
-          throw new Error(progressRes.error || 'Job failed');
-        }
-
-        // Update progress if available
-        if (progressRes.percentage) {
-          setProgress(prev => ({
-            ...prev,
-            progress: Math.min(prev.progress + 5, 90)
-          }));
-        }
-      } catch (err) {
-        if (i === maxAttempts - 1) throw err;
-      }
-    }
-    throw new Error('Job timeout');
-  };
-
-  // File Upload Handler
-  const handleFileUpload = async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
-
-    const fileArray = Array.from(files);
-
-    // Validate file types
-    const invalidFiles = fileArray.filter(f => !f.name.toLowerCase().endsWith('.pdf'));
-    if (invalidFiles.length > 0) {
-      addToast('error', `只支持 PDF 文件。无效文件: ${invalidFiles.map(f => f.name).join(', ')}`);
-      return;
-    }
-
-    // Validate file sizes (max 50MB per file)
-    const oversizedFiles = fileArray.filter(f => f.size > 50 * 1024 * 1024);
-    if (oversizedFiles.length > 0) {
-      addToast('error', `文件过大（最大 50MB）: ${oversizedFiles.map(f => f.name).join(', ')}`);
-      return;
-    }
-
-    setUploadedFiles(fileArray);
-    setIsLoading(true);
-    setProgress({ status: 'processing', progress: 0, total: 100 });
-
-    try {
-      // Step 1: Upload files
-      addToast('success', `开始上传 ${fileArray.length} 个文件`);
-      const formData = new FormData();
-
-      if (uploadMode === 'single') {
-        formData.append('file', fileArray[0]);
-        const uploadRes = await apiCall('/api/upload', {
-          method: 'POST',
-          body: formData
-        });
-        const newJobId = uploadRes.job_id;
-        setJobId(newJobId);
-
-        // Step 2: Parse
-        setProgress({ status: 'processing', progress: 20, total: 100 });
-        await apiCall(`/api/parse/${newJobId}`, { method: 'POST' });
-
-        // Step 3: Build graph
-        setProgress({ status: 'processing', progress: 40, total: 100 });
-        await apiCall(`/api/build_graph/${newJobId}`, { method: 'POST' });
-
-        // Step 3.5: Wait for graph building to complete
-        await pollJobProgress(newJobId, ['graph_built']);
-
-        // Step 4: Integrate
-        setProgress({ status: 'processing', progress: 60, total: 100 });
-        await apiCall(`/api/integrate/${newJobId}`, { method: 'POST' });
-
-        // Step 5: Generate report
-        setProgress({ status: 'processing', progress: 80, total: 100 });
-        await apiCall(`/api/generate_report/${newJobId}`, { method: 'POST' });
-
-        // Step 6: Build RAG index
-        setProgress({ status: 'processing', progress: 90, total: 100 });
-        await apiCall(`/api/rag/index/${newJobId}`, { method: 'POST' });
-
-        // Load graph
-        setProgress({ status: 'processing', progress: 95, total: 100 });
-        const graphRes = await apiCall(`/api/jobs/${newJobId}/graph`);
-        setGraphData(graphRes);
-
-        setProgress({ status: 'completed', progress: 100, total: 100 });
-        addToast('success', '知识图谱构建完成！');
-        setActiveTab('topology');
-      } else {
-        // Multiple files mode
-        fileArray.forEach(file => formData.append('files', file));
-        const uploadRes = await apiCall('/api/upload_multiple', {
-          method: 'POST',
-          body: formData
-        });
-        const newJobId = uploadRes.job_id;
-        setJobId(newJobId);
-
-        // Step 2: Parse multiple textbooks
-        setProgress({ status: 'processing', progress: 20, total: 100 });
-        await apiCall(`/api/parse_multiple/${newJobId}`, { method: 'POST' });
-
-        // Step 3: Build graphs for all textbooks (async)
-        setProgress({ status: 'processing', progress: 40, total: 100 });
-        await apiCall(`/api/build_graphs_multiple/${newJobId}`, { method: 'POST' });
-
-        // Step 4: Poll for completion
-        setProgress({ status: 'processing', progress: 50, total: 100 });
-        await pollJobProgress(newJobId, ['graphs_built', 'partially_failed']);
-
-        // Step 5: Cross-textbook integration
-        setProgress({ status: 'processing', progress: 70, total: 100 });
-        await apiCall(`/api/cross_integrate/${newJobId}`, { method: 'POST' });
-
-        // Load graph
-        setProgress({ status: 'processing', progress: 95, total: 100 });
-        const graphRes = await apiCall(`/api/cross_graph/${newJobId}`);
-        setGraphData(graphRes);
-
-        setProgress({ status: 'completed', progress: 100, total: 100 });
-        addToast('success', '跨教材知识整合完成！');
-        setActiveTab('topology');
-      }
-    } catch (err) {
-      addToast('error', '处理失败，请检查文件格式');
-      setProgress({ status: 'failed', progress: 0, total: 100 });
     } finally {
       setIsLoading(false);
     }
@@ -636,51 +492,6 @@ export default function App() {
                   </header>
 
                   <div className="grid grid-cols-1 gap-6">
-                    {/* Upload Mode Toggle */}
-                    <div className="glass-panel p-6 rounded-3xl space-y-4">
-                      <h3 className="text-[11px] font-black text-anthropic-muted uppercase tracking-[0.3em]">上传模式</h3>
-                      <div className="flex gap-4">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="uploadMode"
-                            value="single"
-                            checked={uploadMode === 'single'}
-                            onChange={(e) => setUploadMode(e.target.value as 'single' | 'multiple')}
-                            className="w-4 h-4"
-                          />
-                          <span className="text-sm text-anthropic-ink">单教材模式</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="uploadMode"
-                            value="multiple"
-                            checked={uploadMode === 'multiple'}
-                            onChange={(e) => setUploadMode(e.target.value as 'single' | 'multiple')}
-                            className="w-4 h-4"
-                          />
-                          <span className="text-sm text-anthropic-ink">跨教材整合模式</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Uploaded Files Display */}
-                    {uploadedFiles.length > 0 && (
-                      <div className="glass-panel p-6 rounded-3xl space-y-4">
-                        <h3 className="text-[11px] font-black text-anthropic-muted uppercase tracking-[0.3em]">已上传文件</h3>
-                        <div className="space-y-2">
-                          {uploadedFiles.map((file, idx) => (
-                            <div key={idx} className="flex items-center gap-3 p-3 bg-anthropic-soft rounded-xl">
-                              <BookOpen className="w-4 h-4 text-anthropic-accent" />
-                              <span className="text-sm text-anthropic-ink flex-1">{file.name}</span>
-                              <span className="text-xs text-anthropic-muted">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
                     {[
                       { name: '生理学_核心解析.pdf', size: '12.4 MB', entities: 42, status: 'Completed', date: '2026-05-09' },
                       { name: '内科学_循环系统.pdf', size: '18.2 MB', entities: 31, status: 'Completed', date: '2026-05-10' },
@@ -719,25 +530,13 @@ export default function App() {
                     ))}
                   </div>
 
-                  <div className="p-12 border-2 border-dashed border-anthropic-border rounded-[3rem] flex flex-col items-center justify-center text-center gap-6 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
-                    onClick={() => document.getElementById('fileInput')?.click()}
-                  >
-                    <input
-                      id="fileInput"
-                      type="file"
-                      accept=".pdf"
-                      multiple={uploadMode === 'multiple'}
-                      onChange={(e) => handleFileUpload(e.target.files)}
-                      className="hidden"
-                    />
+                  <div className="p-12 border-2 border-dashed border-anthropic-border rounded-[3rem] flex flex-col items-center justify-center text-center gap-6 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
                     <div className="w-16 h-16 rounded-full bg-anthropic-soft flex items-center justify-center">
                       <Upload className="w-6 h-6 text-anthropic-ink" />
                     </div>
                     <div className="space-y-1">
                       <h4 className="text-lg font-serif italic text-anthropic-ink">上传新知识源</h4>
-                      <p className="text-[10px] font-bold text-anthropic-muted uppercase tracking-[0.2em]">
-                        {uploadMode === 'single' ? '支持单个 PDF 文件' : '支持多个 PDF 文件（跨教材整合）'}
-                      </p>
+                      <p className="text-[10px] font-bold text-anthropic-muted uppercase tracking-[0.2em]">支持 PDF, Markdown, JSON, Text</p>
                     </div>
                   </div>
                 </div>

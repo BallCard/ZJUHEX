@@ -52,7 +52,11 @@ class DocumentParser:
         if not pdf_path.exists():
             raise FileNotFoundError(f"PDF not found: {pdf_path}")
 
-        doc = fitz.open(str(pdf_path))
+        try:
+            doc = fitz.open(str(pdf_path))
+        except Exception as e:
+            raise ValueError(f"Invalid PDF file: {str(e)}. Please ensure the file is a valid PDF document.")
+
         textbook_name = pdf_path.name
 
         chunks = []
