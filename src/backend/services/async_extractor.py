@@ -40,8 +40,13 @@ class AsyncExtractor:
 
         logger.info(f"AsyncExtractor initialized for job {job_id}")
 
+        # Diagnostic: Check API key before passing
+        api_key_to_pass = settings.deepseek_api_key
+        logger.info(f"[ASYNC_EXTRACTOR] API key from settings: {api_key_to_pass[:10] if api_key_to_pass and api_key_to_pass != 'your_key_here' else 'NOT CONFIGURED'}...")
+        logger.info(f"[ASYNC_EXTRACTOR] API key type: {type(api_key_to_pass)}, length: {len(api_key_to_pass) if api_key_to_pass else 0}")
+
         # Initialize LLM builder (reuse existing logic)
-        self.builder = KnowledgeGraphBuilder(api_key=settings.deepseek_api_key)
+        self.builder = KnowledgeGraphBuilder(api_key=api_key_to_pass)
 
     def extract_chunk(self, chunk: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """

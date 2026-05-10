@@ -1,0 +1,2706 @@
+[
+  {
+    "data": {
+      "id": "node_0",
+      "label": "生理学",
+      "category": "concept",
+      "definition": "研究生物体正常生命活动规律的学科",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_8",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_1",
+      "label": "罗自强",
+      "category": "concept",
+      "definition": "生理学第10版主编之一",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_0",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_2",
+      "label": "管又飞",
+      "category": "concept",
+      "definition": "生理学第10版主编之一",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_0",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_3",
+      "label": "人民卫生出版社",
+      "category": "concept",
+      "definition": "出版生理学第10版的出版社",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_0",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_4",
+      "label": "全国高等学校五年制本科临床医学专业第十轮规划教材",
+      "category": "concept",
+      "definition": "生理学所属的教材系列",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_0",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_5",
+      "label": "ISBN 978-7-117-36425-6",
+      "category": "concept",
+      "definition": "生理学第10版的国际标准书号",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_0",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_6",
+      "label": "人卫智网",
+      "category": "concept",
+      "definition": "人民卫生出版社的医学教育综合服务平台",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_0",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_7",
+      "label": "人卫官网",
+      "category": "concept",
+      "definition": "人民卫生出版社的官方资讯发布平台",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_0",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_8",
+      "label": "医学教育",
+      "category": "concept",
+      "definition": "培养医学人才的教育体系",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_1",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_9",
+      "label": "教材体系",
+      "category": "concept",
+      "definition": "支撑医学教育的教材集合",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_1",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_10",
+      "label": "立德树人",
+      "category": "concept",
+      "definition": "教育根本任务，强调道德培养",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_1",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_11",
+      "label": "课程思政",
+      "category": "concept",
+      "definition": "将思想政治教育融入专业课程",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_1",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_12",
+      "label": "医学人文精神",
+      "category": "concept",
+      "definition": "医学中的人文关怀和伦理素养",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_1",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_13",
+      "label": "医学伦理学",
+      "category": "concept",
+      "definition": "研究医学道德伦理的学科",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_1",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_14",
+      "label": "卫生法",
+      "category": "concept",
+      "definition": "与医疗卫生相关的法律法规",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_1",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_15",
+      "label": "医患沟通",
+      "category": "concept",
+      "definition": "医生与患者之间的交流技巧",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_1",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_16",
+      "label": "医学人文导论",
+      "category": "concept",
+      "definition": "新增的医学人文课程",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_1",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_17",
+      "label": "大健康理念",
+      "category": "concept",
+      "definition": "关注全生命周期健康的理念",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_1",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_18",
+      "label": "以健康为中心",
+      "category": "concept",
+      "definition": "医疗服务转向健康管理",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_1",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_19",
+      "label": "以治病为中心",
+      "category": "concept",
+      "definition": "传统医疗服务模式",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_1",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_20",
+      "label": "预防医学",
+      "category": "concept",
+      "definition": "研究疾病预防的医学分支",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_1",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_21",
+      "label": "公共卫生",
+      "category": "concept",
+      "definition": "保障公众健康的科学和实践",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_1",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_22",
+      "label": "临床医学",
+      "category": "concept",
+      "definition": "直接诊治疾病的医学领域",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_1",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_24",
+      "label": "仁心医者",
+      "category": "concept",
+      "definition": "具有高尚医德和精湛医术的医生",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_1",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_25",
+      "label": "疫情防控",
+      "category": "concept",
+      "definition": "应对新冠疫情的措施和行动",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_1",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_26",
+      "label": "医学教育改革",
+      "category": "concept",
+      "definition": "对医学教育体系的改进和创新",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_1",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_27",
+      "label": "流行病学",
+      "category": "concept",
+      "definition": "研究疾病分布及影响因素的医学学科",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_2",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_29",
+      "label": "卫生学",
+      "category": "concept",
+      "definition": "研究环境卫生与健康关系的医学学科",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_2",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_30",
+      "label": "医防协同",
+      "category": "concept",
+      "definition": "医疗与预防工作的协调配合",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_2",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_31",
+      "label": "医防融合",
+      "category": "concept",
+      "definition": "医疗与预防工作的深度融合",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_2",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_32",
+      "label": "高等医学教育教材体系",
+      "category": "concept",
+      "definition": "中国特色的高等医学教育教材组织系统",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_2",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_34",
+      "label": "学科新进展",
+      "category": "concept",
+      "definition": "学科领域的最新研究成果和发展",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_2",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_36",
+      "label": "医科",
+      "category": "concept",
+      "definition": "医学学科",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_2",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_37",
+      "label": "理科",
+      "category": "concept",
+      "definition": "自然科学学科",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_2",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_38",
+      "label": "工科",
+      "category": "concept",
+      "definition": "工程学科",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_2",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_39",
+      "label": "文科",
+      "category": "concept",
+      "definition": "人文社会科学学科",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_2",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_40",
+      "label": "毕业后教育",
+      "category": "concept",
+      "definition": "医学专业毕业后继续进行的教育",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_2",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_41",
+      "label": "继续教育",
+      "category": "concept",
+      "definition": "在职人员的持续学习与培训",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_2",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_42",
+      "label": "医学生实践能力",
+      "category": "concept",
+      "definition": "医学生将知识应用于实际的能力",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_2",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_43",
+      "label": "医学生创新能力",
+      "category": "concept",
+      "definition": "医学生创造新知识或方法的能力",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_2",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_44",
+      "label": "新形态教材",
+      "category": "concept",
+      "definition": "融合新技术、新形式和优质资源的教材，强调纸数一体化设计",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_45",
+      "label": "纸数一体化设计",
+      "category": "concept",
+      "definition": "教材纸质内容与数字内容相结合的设计方式",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_46",
+      "label": "数字内容建设",
+      "category": "concept",
+      "definition": "与教材知识内容契合的数字资源开发",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_47",
+      "label": "人工智能+",
+      "category": "concept",
+      "definition": "人工智能技术在医学教育数字化转型中的促进作用",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_48",
+      "label": "医学教育数字化转型",
+      "category": "concept",
+      "definition": "利用数字技术推动医学教育升级和融合发展的过程",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_49",
+      "label": "医学教育教学新生态",
+      "category": "concept",
+      "definition": "通过新形态教材重塑的医学教育环境",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_50",
+      "label": "老年医学",
+      "category": "concept",
+      "definition": "聚焦老年医疗和健康服务需求的医学学科",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_51",
+      "label": "临床营养学",
+      "category": "concept",
+      "definition": "重视营养基础与一线治疗作用的医学学科",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_52",
+      "label": "重症医学",
+      "category": "concept",
+      "definition": "满足重大疾病临床需求，强化重症人才培养的医学学科",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_53",
+      "label": "妇产科学",
+      "category": "concept",
+      "definition": "原有医学教材，关注女性生殖健康",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_54",
+      "label": "儿科学",
+      "category": "concept",
+      "definition": "原有医学教材，关注儿童健康",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_55",
+      "label": "重点人群医学教材体系",
+      "category": "concept",
+      "definition": "覆盖老年、妇产、儿童等重点人群的教材体系",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_56",
+      "label": "营养治疗理念",
+      "category": "concept",
+      "definition": "更新后的营养治疗观念",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_57",
+      "label": "营养治疗路径",
+      "category": "concept",
+      "definition": "规范化的营养治疗流程",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_58",
+      "label": "重症管理关口前移",
+      "category": "concept",
+      "definition": "提前介入重症管理以提升应对能力",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_59",
+      "label": "第十轮教材修订",
+      "category": "concept",
+      "definition": "对教材进行的新一轮修订工作",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_60",
+      "label": "思想性",
+      "category": "concept",
+      "definition": "教材应体现的思想教育价值",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_61",
+      "label": "科学性",
+      "category": "concept",
+      "definition": "教材内容的科学准确性",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_62",
+      "label": "先进性",
+      "category": "concept",
+      "definition": "教材内容的先进性和前沿性",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_63",
+      "label": "启发性",
+      "category": "concept",
+      "definition": "教材对学习者的启发作用",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_64",
+      "label": "适用性",
+      "category": "concept",
+      "definition": "教材对教学实践的适用程度",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_66",
+      "label": "健康中国建设",
+      "category": "concept",
+      "definition": "国家层面的健康战略目标",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_3",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_67",
+      "label": "全国高等学校五年制本科临床医学专业国家卫生健康委员会规划教材",
+      "category": "concept",
+      "definition": "自1978年第一轮出版至今，由教育部、国家卫生健康委员会领导，院士专家参与修订的五年制本科临床医学专业规划教材",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_4",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_68",
+      "label": "第十轮教材",
+      "category": "concept",
+      "definition": "本套教材的第十次修订版本，启动于深入学习贯彻党的二十大精神之际",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_4",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_69",
+      "label": "立体化教材格局",
+      "category": "concept",
+      "definition": "由纸质教材与数字教材、在线课程、专业题库、虚拟仿真和人工智能等深度融合的教材体系",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_4",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_70",
+      "label": "中国医药学教育教材建设模式",
+      "category": "concept",
+      "definition": "适合中国医药学教育和卫生事业发展实际的具有中国特色的教材建设和发展模式",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_4",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_71",
+      "label": "干细胞教材",
+      "category": "concept",
+      "definition": "老一辈医学教育家和科学家对本套教材的亲切称呼，比喻其基础性和重要性",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_4",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_72",
+      "label": "教材建设和管理",
+      "category": "concept",
+      "definition": "党的二十大报告中首次提出的国家事权，强调教材建设的重要性",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_4",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_73",
+      "label": "教材修订",
+      "category": "concept",
+      "definition": "对教材内容进行更新和优化的过程",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_5",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_74",
+      "label": "教材审核把关",
+      "category": "concept",
+      "definition": "对教材的编、审、出、修、选、用各环节进行质量检查和控制",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_5",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_75",
+      "label": "教育数字化",
+      "category": "concept",
+      "definition": "利用数字技术推动教育发展和改革",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_5",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_76",
+      "label": "新形态教材",
+      "category": "concept",
+      "definition": "结合数字化技术的新型教材形式",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_5",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_77",
+      "label": "规划教材",
+      "category": "concept",
+      "definition": "按照统一规划编写的教材系列",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_5",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_79",
+      "label": "教材建设",
+      "category": "concept",
+      "definition": "教材的编写、出版和管理工作",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_5",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_80",
+      "label": "教材管理",
+      "category": "concept",
+      "definition": "对教材的规划、审核、使用等环节进行管理",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_5",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_81",
+      "label": "全国高校思想政治工作会议精神",
+      "category": "concept",
+      "definition": "全国高校思想政治工作会议提出的指导方针",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_5",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_82",
+      "label": "全国医学教育改革发展工作会议精神",
+      "category": "concept",
+      "definition": "全国医学教育改革发展工作会议提出的指导方针",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_5",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_83",
+      "label": "首届全国教材工作会议精神",
+      "category": "concept",
+      "definition": "首届全国教材工作会议提出的指导方针",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_5",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_84",
+      "label": "国办发〔2017〕63号",
+      "category": "concept",
+      "definition": "国务院办公厅关于深化医教协同进一步推进医学教育改革与发展的意见",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_5",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_86",
+      "label": "普通高等学校教材管理办法",
+      "category": "concept",
+      "definition": "规范普通高等学校教材管理的法规文件",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_5",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_87",
+      "label": "教材立德树人课程思政",
+      "category": "concept",
+      "definition": "在教材中贯彻落实课程思政，明确培养什么人、怎样培养人、为谁培养人的根本问题，落实立德树人根本任务",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_6",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_88",
+      "label": "医德医风教育",
+      "category": "concept",
+      "definition": "培养学生敬佑生命、救死扶伤、甘于奉献、大爱无疆的医者精神",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_6",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_89",
+      "label": "医者仁心教育",
+      "category": "concept",
+      "definition": "教育引导学生始终把人民群众生命安全和身体健康放在首位，提升综合素养和人文修养",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_6",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_90",
+      "label": "教材守正创新提质增效",
+      "category": "concept",
+      "definition": "适应新时代卫生健康改革及人才培养需求，优化完善教材品种",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_6",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_91",
+      "label": "重症医学",
+      "category": "concept",
+      "definition": "新增教材，顺应人民健康迫切需求，提高医学生应对突发重大公共卫生事件能力",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_6",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_92",
+      "label": "老年医学",
+      "category": "concept",
+      "definition": "新增教材，提高医学生应对人口老龄化能力",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_6",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_93",
+      "label": "临床营养学",
+      "category": "concept",
+      "definition": "新增教材，提升医学生营养治疗技能",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_6",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_94",
+      "label": "医学人文导论",
+      "category": "concept",
+      "definition": "新增教材，培养医学生传承中华优秀传统文化、厚植大医精诚医者仁心的人文素养",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_6",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_95",
+      "label": "卫生学",
+      "category": "concept",
+      "definition": "第9版教材，不再修订，内容融入《预防医学》《医学统计学》等教材",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_6",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_96",
+      "label": "预防医学",
+      "category": "concept",
+      "definition": "教材，融入《卫生学》内容",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_6",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_97",
+      "label": "医学统计学",
+      "category": "concept",
+      "definition": "教材，融入《卫生学》内容",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_6",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_98",
+      "label": "教材精品质量铸就经典",
+      "category": "concept",
+      "definition": "教材编写修订在教育部、国家卫生健康委员会领导下，由专家教授编写，人民卫生出版社高质量出版",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_6",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_99",
+      "label": "全国教材建设奖",
+      "category": "concept",
+      "definition": "首届评选，五年制本科临床医学专业第九轮规划教材共有13种教材获奖",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_6",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_101",
+      "label": "三基",
+      "category": "concept",
+      "definition": "基础理论、基本知识、基本技能",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_102",
+      "label": "五性",
+      "category": "concept",
+      "definition": "思想性、科学性、先进性、启发性、适用性",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_103",
+      "label": "教材编写原则",
+      "category": "concept",
+      "definition": "教材编写应遵循的指导原则，包括三基和五性",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_104",
+      "label": "临床医学专业五年制本科教育",
+      "category": "concept",
+      "definition": "针对临床医学专业的五年制本科教育阶段",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_105",
+      "label": "纸质教材",
+      "category": "concept",
+      "definition": "以纸质形式出版的教材",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_106",
+      "label": "电子教材",
+      "category": "concept",
+      "definition": "与纸质教材配套的数字化教材",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_107",
+      "label": "数字资源",
+      "category": "concept",
+      "definition": "包括教学课件、案例、视频、动画、英文索引词读音、AR互动、数字人案例、三维模型等数字化教学材料",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_108",
+      "label": "在线课程",
+      "category": "concept",
+      "definition": "基于网络的课程资源",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_110",
+      "label": "教材系统化立体化建设",
+      "category": "concept",
+      "definition": "教材在内容和形式上实现系统性和立体化，包括纸质、电子、数字资源及在线课程",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_111",
+      "label": "虚拟现实",
+      "category": "concept",
+      "definition": "一种通过计算机模拟产生三维虚拟世界的技术",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_112",
+      "label": "人工智能",
+      "category": "concept",
+      "definition": "模拟人类智能的计算机技术",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_113",
+      "label": "数字人案例",
+      "category": "concept",
+      "definition": "基于虚拟现实和人工智能技术创建的虚拟病人案例",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_114",
+      "label": "三维模型",
+      "category": "concept",
+      "definition": "用三维数据表示的物体模型",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_115",
+      "label": "思维导图",
+      "category": "concept",
+      "definition": "用于表示知识结构的图形化工具",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_116",
+      "label": "目标测试",
+      "category": "concept",
+      "definition": "用于评估学习目标的测试",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_117",
+      "label": "思考题解题思路",
+      "category": "concept",
+      "definition": "对思考题的解答方法和思路",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_118",
+      "label": "数字切片",
+      "category": "concept",
+      "definition": "数字化后的病理或组织切片图像",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_119",
+      "label": "DICOM",
+      "category": "concept",
+      "definition": "医学数字成像和通信标准",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_120",
+      "label": "第十轮教材",
+      "category": "concept",
+      "definition": "国家卫生健康委员会‘十四五’规划教材，共56种",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_121",
+      "label": "国家卫生健康委员会‘十四五’规划教材",
+      "category": "concept",
+      "definition": "由国家卫生健康委员会规划的‘十四五’期间教材",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_7",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_123",
+      "label": "管又飞",
+      "category": "person",
+      "definition": "大连医科大学教授、博士研究生导师，医学领域专家",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_8",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_124",
+      "label": "罗自强",
+      "category": "person",
+      "definition": "中南大学湘雅医学院生理学教授、博士研究生导师",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_8",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_126",
+      "label": "肾脏生理",
+      "category": "research_field",
+      "definition": "研究肾脏功能及其调节机制的生理学分支",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_8",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_127",
+      "label": "心血管生理",
+      "category": "research_field",
+      "definition": "研究心血管系统功能及其调节机制的生理学分支",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_8",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_128",
+      "label": "代谢生理",
+      "category": "research_field",
+      "definition": "研究物质代谢和能量代谢的生理学分支",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_8",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_129",
+      "label": "中国生理学会",
+      "category": "organization",
+      "definition": "中国生理学领域的学术团体",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_8",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_130",
+      "label": "国家自然科学基金委员会",
+      "category": "organization",
+      "definition": "中国资助基础研究的政府机构",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_8",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_132",
+      "label": "《生理学》",
+      "category": "textbook",
+      "definition": "国家级规划教材，用于医学教育",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_8",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_133",
+      "label": "国家级一流本科专业建设点",
+      "category": "project",
+      "definition": "教育部认定的高水平本科专业建设项目",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_8",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_135",
+      "label": "973计划",
+      "category": "project",
+      "definition": "国家重点基础研究发展计划",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_8",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_136",
+      "label": "中国高被引学者",
+      "category": "honor",
+      "definition": "学术影响力高的学者榜单",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_8",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_138",
+      "label": "副理事长",
+      "category": "concept",
+      "definition": "学会领导职务之一",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_139",
+      "label": "教育工作委员会主任委员",
+      "category": "concept",
+      "definition": "学会内负责教育工作的委员会负责人",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_140",
+      "label": "呼吸生理专业委员会主任委员",
+      "category": "concept",
+      "definition": "学会内负责呼吸生理专业的委员会负责人",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_142",
+      "label": "国家级精品课程",
+      "category": "concept",
+      "definition": "国家认定的高水平课程",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_143",
+      "label": "精品资源共享课",
+      "category": "concept",
+      "definition": "国家级的优质资源共享课程",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_144",
+      "label": "精品视频公开课",
+      "category": "concept",
+      "definition": "国家级的公开视频课程",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_145",
+      "label": "国家级线上一流课程",
+      "category": "concept",
+      "definition": "国家认定的线上优质课程",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_147",
+      "label": "教育部生理学课程思政示范课程",
+      "category": "concept",
+      "definition": "教育部认定的思政教育示范课程",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_148",
+      "label": "医学科研设计",
+      "category": "concept",
+      "definition": "医学研究方法的课程",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_149",
+      "label": "湖南省研究生精品课程",
+      "category": "concept",
+      "definition": "湖南省认定的研究生优质课程",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_150",
+      "label": "在线开放课程",
+      "category": "concept",
+      "definition": "面向公众开放的在线课程",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_151",
+      "label": "急性肺损伤",
+      "category": "concept",
+      "definition": "肺部急性损伤性疾病",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_152",
+      "label": "肺纤维化",
+      "category": "concept",
+      "definition": "肺部纤维组织增生的疾病",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_153",
+      "label": "国家自然科学基金项目",
+      "category": "concept",
+      "definition": "国家资助的基础研究项目",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_154",
+      "label": "十二五普通高等教育本科国家级规划教材",
+      "category": "concept",
+      "definition": "国家十二五期间规划的本科教材",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_155",
+      "label": "麻醉生理学",
+      "category": "concept",
+      "definition": "研究麻醉状态下生理变化的教材",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_156",
+      "label": "教育部基础医学101计划核心教材",
+      "category": "concept",
+      "definition": "教育部基础医学101计划的核心教材",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_157",
+      "label": "呼吸系统",
+      "category": "concept",
+      "definition": "研究呼吸系统结构与功能的教材",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_158",
+      "label": "湖南省高等教育教学成果一等奖",
+      "category": "concept",
+      "definition": "湖南省教学成果的最高奖项之一",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_159",
+      "label": "国家级教学成果二等奖",
+      "category": "concept",
+      "definition": "国家教学成果的二等奖项",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_160",
+      "label": "霍英东教育基金会高等院校青年教师奖",
+      "category": "concept",
+      "definition": "霍英东基金会设立的教师奖项",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_161",
+      "label": "宝钢优秀教师奖",
+      "category": "concept",
+      "definition": "宝钢教育基金设立的教师奖项",
+      "textbook": "03_生理学.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_9",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_0_node_1",
+      "source": "node_0",
+      "target": "node_1"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_0_node_2",
+      "source": "node_0",
+      "target": "node_2"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_0_node_3",
+      "source": "node_0",
+      "target": "node_3"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_0_node_4",
+      "source": "node_0",
+      "target": "node_4"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_0_node_5",
+      "source": "node_0",
+      "target": "node_5"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_3_node_6",
+      "source": "node_3",
+      "target": "node_6"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_3_node_7",
+      "source": "node_3",
+      "target": "node_7"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_8_node_9",
+      "source": "node_8",
+      "target": "node_9"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_8_node_10",
+      "source": "node_8",
+      "target": "node_10"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_10_node_11",
+      "source": "node_10",
+      "target": "node_11"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_11_node_12",
+      "source": "node_11",
+      "target": "node_12"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_12_node_13",
+      "source": "node_12",
+      "target": "node_13"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_12_node_14",
+      "source": "node_12",
+      "target": "node_14"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_12_node_15",
+      "source": "node_12",
+      "target": "node_15"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_12_node_16",
+      "source": "node_12",
+      "target": "node_16"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_17_node_18",
+      "source": "node_17",
+      "target": "node_18"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_18_node_19",
+      "source": "node_18",
+      "target": "node_19"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_17_node_20",
+      "source": "node_17",
+      "target": "node_20"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_17_node_21",
+      "source": "node_17",
+      "target": "node_21"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_22_node_20",
+      "source": "node_22",
+      "target": "node_20"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_22_node_21",
+      "source": "node_22",
+      "target": "node_21"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_8_node_24",
+      "source": "node_8",
+      "target": "node_24"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_26_node_8",
+      "source": "node_26",
+      "target": "node_8"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_25_node_8",
+      "source": "node_25",
+      "target": "node_8"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_27_node_20",
+      "source": "node_27",
+      "target": "node_20"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_29_node_27",
+      "source": "node_29",
+      "target": "node_27"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_29_node_20",
+      "source": "node_29",
+      "target": "node_20"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_30_node_31",
+      "source": "node_30",
+      "target": "node_31"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_32_node_8",
+      "source": "node_32",
+      "target": "node_8"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_34_node_26",
+      "source": "node_34",
+      "target": "node_26"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_36_node_37",
+      "source": "node_36",
+      "target": "node_37"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_36_node_38",
+      "source": "node_36",
+      "target": "node_38"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_36_node_39",
+      "source": "node_36",
+      "target": "node_39"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_40_node_41",
+      "source": "node_40",
+      "target": "node_41"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_42_node_43",
+      "source": "node_42",
+      "target": "node_43"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_44_node_45",
+      "source": "node_44",
+      "target": "node_45"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_45_node_46",
+      "source": "node_45",
+      "target": "node_46"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_47_node_48",
+      "source": "node_47",
+      "target": "node_48"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_48_node_49",
+      "source": "node_48",
+      "target": "node_49"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_44_node_49",
+      "source": "node_44",
+      "target": "node_49"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_50_node_55",
+      "source": "node_50",
+      "target": "node_55"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_53_node_55",
+      "source": "node_53",
+      "target": "node_55"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_54_node_55",
+      "source": "node_54",
+      "target": "node_55"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_51_node_56",
+      "source": "node_51",
+      "target": "node_56"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_51_node_57",
+      "source": "node_51",
+      "target": "node_57"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_52_node_58",
+      "source": "node_52",
+      "target": "node_58"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_59_node_60",
+      "source": "node_59",
+      "target": "node_60"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_59_node_61",
+      "source": "node_59",
+      "target": "node_61"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_59_node_62",
+      "source": "node_59",
+      "target": "node_62"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_59_node_63",
+      "source": "node_59",
+      "target": "node_63"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_59_node_64",
+      "source": "node_59",
+      "target": "node_64"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_48_node_66",
+      "source": "node_48",
+      "target": "node_66"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_67_node_68",
+      "source": "node_67",
+      "target": "node_68"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_67_node_69",
+      "source": "node_67",
+      "target": "node_69"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_67_node_70",
+      "source": "node_67",
+      "target": "node_70"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_67_node_71",
+      "source": "node_67",
+      "target": "node_71"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_68_node_72",
+      "source": "node_68",
+      "target": "node_72"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_72_node_67",
+      "source": "node_72",
+      "target": "node_67"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_73_node_74",
+      "source": "node_73",
+      "target": "node_74"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_73_node_75",
+      "source": "node_73",
+      "target": "node_75"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_73_node_44",
+      "source": "node_73",
+      "target": "node_44"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_73_node_77",
+      "source": "node_73",
+      "target": "node_77"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_73_node_81",
+      "source": "node_73",
+      "target": "node_81"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_73_node_82",
+      "source": "node_73",
+      "target": "node_82"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_73_node_83",
+      "source": "node_73",
+      "target": "node_83"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_73_node_84",
+      "source": "node_73",
+      "target": "node_84"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_73_node_86",
+      "source": "node_73",
+      "target": "node_86"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_79_node_80",
+      "source": "node_79",
+      "target": "node_80"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_26_node_73",
+      "source": "node_26",
+      "target": "node_73"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_87_node_88",
+      "source": "node_87",
+      "target": "node_88"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_87_node_89",
+      "source": "node_87",
+      "target": "node_89"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_90_node_52",
+      "source": "node_90",
+      "target": "node_52"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_90_node_50",
+      "source": "node_90",
+      "target": "node_50"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_90_node_51",
+      "source": "node_90",
+      "target": "node_51"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_90_node_16",
+      "source": "node_90",
+      "target": "node_16"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_90_node_29",
+      "source": "node_90",
+      "target": "node_29"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_29_node_20",
+      "source": "node_29",
+      "target": "node_20"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_29_node_97",
+      "source": "node_29",
+      "target": "node_97"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_98_node_99",
+      "source": "node_98",
+      "target": "node_99"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_103_node_101",
+      "source": "node_103",
+      "target": "node_101"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_103_node_102",
+      "source": "node_103",
+      "target": "node_102"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_103_node_104",
+      "source": "node_103",
+      "target": "node_104"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_105_node_106",
+      "source": "node_105",
+      "target": "node_106"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_105_node_107",
+      "source": "node_105",
+      "target": "node_107"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_105_node_108",
+      "source": "node_105",
+      "target": "node_108"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_110_node_105",
+      "source": "node_110",
+      "target": "node_105"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_110_node_106",
+      "source": "node_110",
+      "target": "node_106"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_110_node_107",
+      "source": "node_110",
+      "target": "node_107"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_110_node_108",
+      "source": "node_110",
+      "target": "node_108"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_107_node_111",
+      "source": "node_107",
+      "target": "node_111"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_107_node_112",
+      "source": "node_107",
+      "target": "node_112"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_107_node_113",
+      "source": "node_107",
+      "target": "node_113"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_107_node_114",
+      "source": "node_107",
+      "target": "node_114"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_107_node_115",
+      "source": "node_107",
+      "target": "node_115"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_107_node_116",
+      "source": "node_107",
+      "target": "node_116"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_107_node_117",
+      "source": "node_107",
+      "target": "node_117"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_107_node_118",
+      "source": "node_107",
+      "target": "node_118"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_107_node_119",
+      "source": "node_107",
+      "target": "node_119"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_75_node_110",
+      "source": "node_75",
+      "target": "node_110"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_68_node_121",
+      "source": "node_68",
+      "target": "node_121"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_68_node_105",
+      "source": "node_68",
+      "target": "node_105"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_68_node_106",
+      "source": "node_68",
+      "target": "node_106"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_68_node_107",
+      "source": "node_68",
+      "target": "node_107"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_2_node_126",
+      "source": "node_2",
+      "target": "node_126"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_2_node_127",
+      "source": "node_2",
+      "target": "node_127"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_2_node_128",
+      "source": "node_2",
+      "target": "node_128"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_2_node_129",
+      "source": "node_2",
+      "target": "node_129"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_2_node_132",
+      "source": "node_2",
+      "target": "node_132"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_2_node_135",
+      "source": "node_2",
+      "target": "node_135"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_2_node_136",
+      "source": "node_2",
+      "target": "node_136"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_1_node_129",
+      "source": "node_1",
+      "target": "node_129"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_2_node_1",
+      "source": "node_2",
+      "target": "node_1"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_0_node_126",
+      "source": "node_0",
+      "target": "node_126"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_0_node_127",
+      "source": "node_0",
+      "target": "node_127"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_0_node_128",
+      "source": "node_0",
+      "target": "node_128"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_130_node_2",
+      "source": "node_130",
+      "target": "node_2"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_135_node_2",
+      "source": "node_135",
+      "target": "node_2"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_138_node_129",
+      "source": "node_138",
+      "target": "node_129"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_139_node_129",
+      "source": "node_139",
+      "target": "node_129"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_140_node_129",
+      "source": "node_140",
+      "target": "node_129"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_142_node_0",
+      "source": "node_142",
+      "target": "node_0"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_143_node_0",
+      "source": "node_143",
+      "target": "node_0"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_144_node_0",
+      "source": "node_144",
+      "target": "node_0"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_145_node_0",
+      "source": "node_145",
+      "target": "node_0"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_147_node_0",
+      "source": "node_147",
+      "target": "node_0"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_149_node_148",
+      "source": "node_149",
+      "target": "node_148"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_150_node_148",
+      "source": "node_150",
+      "target": "node_148"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_151_node_152",
+      "source": "node_151",
+      "target": "node_152"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_153_node_151",
+      "source": "node_153",
+      "target": "node_151"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_153_node_152",
+      "source": "node_153",
+      "target": "node_152"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_154_node_155",
+      "source": "node_154",
+      "target": "node_155"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_156_node_157",
+      "source": "node_156",
+      "target": "node_157"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_158_node_0",
+      "source": "node_158",
+      "target": "node_0"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_159_node_0",
+      "source": "node_159",
+      "target": "node_0"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_160_node_0",
+      "source": "node_160",
+      "target": "node_0"
+    }
+  },
+  {
+    "data": {
+      "id": "e_node_161_node_0",
+      "source": "node_161",
+      "target": "node_0"
+    }
+  }
+]

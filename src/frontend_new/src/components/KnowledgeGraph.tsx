@@ -18,22 +18,18 @@ export const KnowledgeGraph: React.FC<Props> = ({ data, onNodeClick }) => {
 
     const layoutConfig = {
       name: 'cose',
-      idealEdgeLength: 100,
-      nodeOverlap: 20,
-      refresh: 20,
+      animate: false,
       fit: true,
-      padding: 50,
-      randomize: false,
-      componentSpacing: 100,
+      padding: 100,
       nodeRepulsion: 400000,
+      idealEdgeLength: 150,
       edgeElasticity: 100,
       nestingFactor: 5,
       gravity: 80,
       numIter: 1000,
       initialTemp: 200,
       coolingFactor: 0.95,
-      minTemp: 1.0,
-      animate: false
+      minTemp: 1.0
     };
 
     cyRef.current = cytoscape({
@@ -44,7 +40,7 @@ export const KnowledgeGraph: React.FC<Props> = ({ data, onNodeClick }) => {
       panningEnabled: true,
       userPanningEnabled: true,
       minZoom: 0.1,
-      maxZoom: 3,
+      maxZoom: 5,
       wheelSensitivity: 0.15,
       style: [
         {
@@ -60,9 +56,10 @@ export const KnowledgeGraph: React.FC<Props> = ({ data, onNodeClick }) => {
             'font-size': (node: any) => {
               const degree = node.degree();
               const category = node.data('category');
-              const baseSize = 10;
-              const scaleFactor = Math.min(degree * 1.5, 12); 
-              const categoryBoost = category === '核心机制' ? 2 : 0;
+              const baseSize = 16;
+              const scaleFactor = Math.min(degree * 2.5, 20);
+              // 重要类别加大字号
+              const categoryBoost = ['disease', 'discipline', 'subdiscipline'].includes(category) ? 4 : 0;
               return `${baseSize + scaleFactor + categoryBoost}px`;
             },
             'text-outline-width': '2px',
@@ -70,20 +67,27 @@ export const KnowledgeGraph: React.FC<Props> = ({ data, onNodeClick }) => {
             'text-outline-opacity': 1,
             'text-transform': 'none',
             // Dynamic sizing based on degree
-            'width': (node: any) => 24 + Math.min(node.degree() * 4, 30),
-            'height': (node: any) => 24 + Math.min(node.degree() * 4, 30),
+            'width': (node: any) => 60 + Math.min(node.degree() * 8, 80),
+            'height': (node: any) => 60 + Math.min(node.degree() * 8, 80),
             'background-color': '#FFFFFF',
-            'border-width': (node: any) => node.degree() > 2 ? '4px' : '2px',
+            'border-width': (node: any) => node.degree() > 2 ? '5px' : '3px',
             'border-color': (node: any) => {
               const cat = node.data('category');
               switch(cat) {
-                case '核心机制': return '#D97757';
-                case '评价指标': return '#3B82F6';
-                case '基础理论': return '#8B5CF6';
-                case '临床表现': return '#EF4444';
-                case '治疗方案': return '#10B981';
-                case '解剖结构': return '#F59E0B';
-                default: return '#6B7280';
+                case 'concept': return '#667eea';           // 紫蓝色 - 概念
+                case 'person': return '#f093fb';            // 粉色 - 人物
+                case 'organization': return '#4facfe';      // 天蓝色 - 机构
+                case 'disease': return '#EF4444';           // 红色 - 疾病
+                case 'discipline': return '#8B5CF6';        // 紫色 - 学科
+                case 'subdiscipline': return '#A78BFA';     // 浅紫色 - 子学科
+                case 'award': return '#F59E0B';             // 橙色 - 奖项
+                case 'attribute': return '#10B981';         // 绿色 - 属性
+                case 'project': return '#06B6D4';           // 青色 - 项目
+                case 'textbook': return '#EC4899';          // 玫红色 - 教材
+                case 'journal': return '#14B8A6';           // 青绿色 - 期刊
+                case 'honor': return '#FBBF24';             // 金色 - 荣誉
+                case 'course': return '#A855F7';            // 深紫色 - 课程
+                default: return '#6B7280';                  // 灰色 - 其他
               }
             },
             'border-opacity': 0.9,
@@ -205,7 +209,11 @@ export const KnowledgeGraph: React.FC<Props> = ({ data, onNodeClick }) => {
     
     const handleLayoutStop = () => {
       setIsLoaded(true);
-      cyRef.current?.fit(undefined, 50);
+      cyRef.current?.fit(undefined, 80);
+      // Apply initial zoom to make nodes more visible
+      const currentZoom = cyRef.current?.zoom() || 1;
+      cyRef.current?.zoom(currentZoom * 1.5);
+      cyRef.current?.center();
     };
 
     layout.on('layoutstop', handleLayoutStop);
@@ -219,7 +227,10 @@ export const KnowledgeGraph: React.FC<Props> = ({ data, onNodeClick }) => {
     // Secondary fallback to ensure visibility
     const timer = setTimeout(() => {
       setIsLoaded(true);
-      cyRef.current?.fit(undefined, 50);
+      cyRef.current?.fit(undefined, 80);
+      const currentZoom = cyRef.current?.zoom() || 1;
+      cyRef.current?.zoom(currentZoom * 1.5);
+      cyRef.current?.center();
     }, 100);
 
     cyRef.current.ready(() => {
@@ -241,7 +252,10 @@ export const KnowledgeGraph: React.FC<Props> = ({ data, onNodeClick }) => {
     
     const resizeObserver = new ResizeObserver(() => {
       cyRef.current?.resize();
-      cyRef.current?.fit(undefined, 50);
+      cyRef.current?.fit(undefined, 80);
+      const currentZoom = cyRef.current?.zoom() || 1;
+      cyRef.current?.zoom(currentZoom * 1.5);
+      cyRef.current?.center();
     });
     
     resizeObserver.observe(containerRef.current);

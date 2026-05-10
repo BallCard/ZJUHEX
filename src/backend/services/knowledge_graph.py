@@ -33,12 +33,16 @@ class KnowledgeGraphBuilder:
         Args:
             api_key: DeepSeek API key (defaults to settings)
         """
-        logger.info(f"KnowledgeGraphBuilder.__init__ called with api_key={'provided' if api_key else 'None'}")
-        logger.info(f"settings.deepseek_api_key={'configured' if settings.deepseek_api_key and settings.deepseek_api_key != 'your_key_here' else 'NOT configured'}")
+        logger.info(f"[KG_BUILDER] __init__ called")
+        logger.info(f"[KG_BUILDER] api_key parameter: {api_key[:10] if api_key and api_key != 'your_key_here' else 'NOT PROVIDED'}...")
+        logger.info(f"[KG_BUILDER] api_key type: {type(api_key)}, length: {len(api_key) if api_key else 0}")
+        logger.info(f"[KG_BUILDER] settings.deepseek_api_key: {settings.deepseek_api_key[:10] if settings.deepseek_api_key and settings.deepseek_api_key != 'your_key_here' else 'NOT CONFIGURED'}...")
 
         self.api_key = api_key or settings.deepseek_api_key
+        logger.info(f"[KG_BUILDER] Final self.api_key: {self.api_key[:10] if self.api_key and self.api_key != 'your_key_here' else 'NOT SET'}...")
+
         if not self.api_key or self.api_key == "your_key_here":
-            logger.error(f"API key validation failed: api_key={self.api_key}")
+            logger.error(f"[KG_BUILDER] API key validation FAILED: api_key={self.api_key}")
             raise ValueError("DEEPSEEK_API_KEY not configured in .env file")
 
         # DeepSeek is OpenAI-compatible
@@ -47,7 +51,7 @@ class KnowledgeGraphBuilder:
             base_url=settings.deepseek_base_url
         )
 
-        logger.info("KnowledgeGraphBuilder initialized with DeepSeek API")
+        logger.info("[KG_BUILDER] KnowledgeGraphBuilder initialized with DeepSeek API")
 
     def build_graph(self, chunks: List[Dict[str, Any]], max_chunks: Optional[int] = None) -> Dict[str, Any]:
         """

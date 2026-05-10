@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  BookOpen, 
-  Search, 
-  Network, 
-  Settings, 
-  Upload, 
-  Loader2, 
-  ChevronRight, 
-  Info, 
+import {
+  BookOpen,
+  Search,
+  Network,
+  Settings,
+  Upload,
+  Loader2,
+  ChevronRight,
+  Info,
   ExternalLink,
   CheckCircle2,
   AlertCircle,
@@ -17,6 +17,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { KnowledgeGraph } from './components/KnowledgeGraph';
 import { cn } from './lib/utils';
+import { demoGraphData, demoRAGResponses } from './data/demoData';
 
 // Types
 interface JobProgress {
@@ -77,6 +78,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'topology' | 'resources' | 'observation'>('topology');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [uploadMode, setUploadMode] = useState<'single' | 'multiple'>('single');
+  const [demoMode, setDemoMode] = useState(false);
 
   // Helpers
   const addToast = useCallback((type: 'success' | 'error', message: string) => {
@@ -147,68 +149,6 @@ export default function App() {
   }, [jobId, apiCall]);
 
   // Actions
-  // --- Simulation Data for Demo Mode ---
-  const mockGraphData = [
-    // === 心血管系统 (Cardiovascular System) ===
-    { data: { id: 'n1', label: '心脏泵血功能', category: '核心机制', definition: '心脏通过节律性收缩和舒张，将静脉回流的血液射入动脉，是血液循环的动力泵。', textbook: '《生理学》第九版', source_page: 84, neighbors: ['心输出量', '博出量', '射血分数', '心动周期', '心肌收缩力', '前负荷', '后负荷'] } },
-    { data: { id: 'n2', label: '心输出量', category: '评价指标', definition: '一侧心室每分钟射出的血液量，是反映心脏功能的重要指标。', textbook: '《生理学》第九版', source_page: 86, neighbors: ['心脏泵血功能', '心率'] } },
-    { data: { id: 'n3', label: '博出量', category: '评价指标', definition: '一侧心室在一次心搏中射出的血液量。', textbook: '《生理学》第九版', source_page: 85, neighbors: ['心输出量', '心脏泵血功能'] } },
-    { data: { id: 'n4', label: '射血分数', category: '评价指标', definition: '博出量占心室舒张末期容积的百分比，更能早期反映心脏泵血功能。', textbook: '《生理学》第九版', source_page: 87, neighbors: ['心脏泵血功能', '心力衰竭'] } },
-    { data: { id: 'n5', label: '心肌电生理', category: '基础理论', definition: '心肌细胞通过离子通道的开关产生电活动，协调心脏收缩。', textbook: '《生理学》第九版', source_page: 92, neighbors: ['窦房结', '心脏泵血功能'] } },
-    { data: { id: 'n6', label: '心室肥厚', category: '临床表现', definition: '心室壁厚度增加，常由于长期压力负荷增加引起。', textbook: '《内科学》', source_page: 156, neighbors: ['心脏泵血功能', '高血压'] } },
-    { data: { id: 'n7', label: '利尿剂治疗', category: '治疗方案', definition: '通过减少血容量，减轻心脏前负荷。', textbook: '《药理学》', source_page: 210, neighbors: ['心脏泵血功能', '心力衰竭'] } },
-    { data: { id: 'n8', label: '左心室', category: '解剖结构', definition: '心脏四个腔室之一，壁最厚，负责体循环射血。', textbook: '《解剖学》', source_page: 45, neighbors: ['心脏泵血功能', '射血分数'] } },
-    { data: { id: 'n9', label: '心动周期', category: '核心机制', definition: '心脏收缩和舒张一次构成的机械活动周期。', textbook: '《生理学》', source_page: 84, neighbors: ['心脏泵血功能'] } },
-    { data: { id: 'n10', label: '心力衰竭', category: '临床表现', definition: '心脏由于各种原因导致排血量不足以维持代谢需求，或需依靠填充压升高维持。', textbook: '《内科学》', source_page: 158, neighbors: ['射血分数', '心脏泵血功能', '利尿剂治疗', '肺水肿'] } },
-    { data: { id: 'n11', label: '前负荷', category: '基础理论', definition: '心室收缩前所承受的负荷，即心室舒张末期压力。', textbook: '《生理学》', source_page: 88, neighbors: ['心脏泵血功能', '利尿剂治疗'] } },
-    { data: { id: 'n12', label: '后负荷', category: '基础理论', definition: '心室收缩时所面临的阻力，主要取决于大动脉血压。', textbook: '《生理学》', source_page: 89, neighbors: ['心脏泵血功能', '高血压'] } },
-
-    // === 呼吸系统 (Respiratory System) ===
-    { data: { id: 'r1', label: '肺换气', category: '核心机制', definition: '肺泡与肺毛细血管血液之间进行气体交换的过程。', textbook: '《生理学》', source_page: 142, neighbors: ['呼吸膜', '肺泡', '氧合指数'] } },
-    { data: { id: 'r2', label: '肺泡', category: '解剖结构', definition: '肺内进行气体交换的基本单位，其内表面覆盖有表面活性物质。', textbook: '《解剖学》', source_page: 112, neighbors: ['肺换气', '呼吸膜'] } },
-    { data: { id: 'r3', label: '呼吸膜', category: '解剖结构', definition: '肺泡气体与血液气体交换经过的结构层次，厚度影响弥散速度。', textbook: '《解剖学》', source_page: 115, neighbors: ['肺换气', '肺源性心脏病'] } },
-    { data: { id: 'r4', label: '氧合指数', category: '评价指标', definition: '动脉血氧分压与吸入氧浓度之比，用于评估呼吸功能。', textbook: '《诊断学》', source_page: 256, neighbors: ['肺换气', '呼吸衰竭'] } },
-    { data: { id: 'r5', label: '呼吸衰竭', category: '临床表现', definition: '肺通气或换气功能严重障碍，导致缺氧或二氧化碳潴留。', textbook: '《内科学》', source_page: 230, neighbors: ['肺换气', '氧合指数', '肺源性心脏病'] } },
-    { data: { id: 'r6', label: '肺源性心脏病', category: '临床表现', definition: '由于呼吸系统疾病导致肺动脉高压，进而引起右心室肥厚和功能衰竭。', textbook: '《内科学》', source_page: 245, neighbors: ['心脏泵血功能', '呼吸衰竭', '呼吸膜'] } },
-
-    // === 内分泌系统 (Endocrine System) ===
-    { data: { id: 'e1', label: '血糖调节', category: '核心机制', definition: '通过胰岛素、胰高血糖素等激素维持体内血糖处于稳定范围。', textbook: '《生理学》', source_page: 380, neighbors: ['胰岛素', '胰腺', '糖尿病'] } },
-    { data: { id: 'e10', label: '胰岛素', category: '核心机制', definition: '由胰岛B细胞分泌，是体内唯一降低血糖的激素。', textbook: '《生化学》', source_page: 412, neighbors: ['血糖调节', '胰腺', '二甲双胍'] } },
-    { data: { id: 'e11', label: '胰腺', category: '解剖结构', definition: '兼具内外分泌功能的器官，内分泌部即胰岛。', textbook: '《解剖学》', source_page: 68, neighbors: ['胰岛素', '血糖调节'] } },
-    { data: { id: 'e12', label: '糖尿病', category: '临床表现', definition: '一组由于胰岛素分泌或作用缺陷引起的代谢性疾病。', textbook: '《内科学》', source_page: 512, neighbors: ['血糖调节', '二甲双胍', '严重并发症'] } },
-    { data: { id: 'e13', label: '二甲双胍', category: '治疗方案', definition: '通过减少肝糖输出并改善外周组织对胰岛素的敏感性来降糖。', textbook: '《药理学》', source_page: 450, neighbors: ['糖尿病', '胰岛素'] } },
-
-    // === Edges (Relationships) ===
-    // 心血管内部
-    { data: { id: 'e-cv1', source: 'n1', target: 'n2' } },
-    { data: { id: 'e-cv2', source: 'n1', target: 'n3' } },
-    { data: { id: 'e-cv3', source: 'n1', target: 'n4' } },
-    { data: { id: 'e-cv4', source: 'n1', target: 'n10' } },
-    { data: { id: 'e-cv5', source: 'n4', target: 'n10' } },
-    { data: { id: 'e-cv6', source: 'n8', target: 'n4' } },
-    { data: { id: 'e-cv7', source: 'n11', target: 'n1' } },
-    { data: { id: 'e-cv8', source: 'n12', target: 'n1' } },
-    { data: { id: 'e-cv9', source: 'n7', target: 'n11' } },
-    { data: { id: 'e-cv10', source: 'n7', target: 'n10' } },
-    { data: { id: 'e-cv11', source: 'n9', target: 'n1' } },
-    // 呼吸内部
-    { data: { id: 'e-rs1', source: 'r2', target: 'r1' } },
-    { data: { id: 'e-rs2', source: 'r3', target: 'r1' } },
-    { data: { id: 'e-rs3', source: 'r1', target: 'r4' } },
-    { data: { id: 'e-rs4', source: 'r1', target: 'r5' } },
-    { data: { id: 'e-rs5', source: 'r4', target: 'r5' } },
-    // 内分泌内部
-    { data: { id: 'e-en1', source: 'e11', target: 'e10' } },
-    { data: { id: 'e-en2', source: 'e10', target: 'e1' } },
-    { data: { id: 'e-en3', source: 'e1', target: 'e12' } },
-    { data: { id: 'e-en4', source: 'e13', target: 'e12' } },
-    { data: { id: 'e-en5', source: 'e13', target: 'e10' } },
-    // 跨系统关联 (Cross-system Cross-linking)
-    { data: { id: 'e-cross1', source: 'r5', target: 'r6' } },
-    { data: { id: 'e-cross2', source: 'r6', target: 'n1' } }, // 肺心病引起心脏泵血改变
-    { data: { id: 'e-cross3', source: 'n10', target: 'r1' } }, // 心衰引起肺水肿/影响肺换气
-    { data: { id: 'e-cross4', source: 'e12', target: 'n6' } }, // 糖尿病血管病变引起心室改变
-  ];
 
   const mockRagResult = {
     answer: "心脏的泵血功能是通过心肌的节律性收缩和舒张实现的。评价心脏功能的核心指标包括心输出量（Cardiac Output）和博出量。射血分数（EF）是评价心功能更为敏感的指标，正常值通常在50%以上，能够反映早期心功能的减退。",
@@ -245,7 +185,7 @@ export default function App() {
       if (!apiUrl || apiUrl === 'API_ENDPOINT') {
         // Direct Demo Mode
         setTimeout(() => {
-          setGraphData(mockGraphData);
+          setGraphData(demoGraphData);
           setJobId('mock_job_id');
           addToast('success', '演示模式：已建立语义拓扑网络');
           setProgress({ status: 'completed', progress: 100, total: 100 });
@@ -258,7 +198,7 @@ export default function App() {
           addToast('success', '已启动服务器端深度构建');
         } catch (e) {
           setJobId('mock_job_id');
-          setGraphData(mockGraphData);
+          setGraphData(demoGraphData);
           addToast('error', '链路探测异常，已加载本地仿真内核');
           setProgress({ status: 'completed', progress: 100, total: 100 });
         }
@@ -276,10 +216,26 @@ export default function App() {
     setRAGResult(null);
 
     try {
-      if (!apiUrl || apiUrl === 'API_ENDPOINT' || jobId === 'mock_job_id') {
-        await new Promise(r => setTimeout(r, 1500)); // Immersion latency
-        setRAGResult(mockRagResult);
-        addToast('success', '语义检索与关联匹配完成');
+      if (!apiUrl || apiUrl === 'API_ENDPOINT' || jobId === 'mock_job_id' || jobId === 'demo-job-id' || demoMode) {
+        await new Promise(r => setTimeout(r, 1500));
+
+        // Smart demo response based on query
+        const queryLower = query.toLowerCase();
+        let response;
+
+        if (queryLower.includes('心脏') && (queryLower.includes('结构') || queryLower.includes('组成'))) {
+          response = demoRAGResponses['心脏的基本结构'];
+        } else if (queryLower.includes('心肌梗死') || queryLower.includes('梗死')) {
+          response = demoRAGResponses['心肌梗死'];
+        } else {
+          response = demoRAGResponses['default'];
+        }
+
+        setRAGResult({
+          ...response,
+          question: query
+        });
+        addToast('success', '演示模式：AI问答完成');
       } else {
         const data = await apiCall(`/api/rag/query/${jobId}`, {
           method: 'POST',
@@ -287,11 +243,11 @@ export default function App() {
           body: JSON.stringify({ question: query })
         });
         setRAGResult(data);
-        addToast('success', '内核生成结果已同步');
+        addToast('success', '查询完成');
       }
     } catch (err) {
       setRAGResult(mockRagResult);
-      addToast('error', '查询协议握手失败，启用本地认知索引');
+      addToast('error', '查询失败，使用备用数据');
     } finally {
       setIsLoading(false);
     }
@@ -332,6 +288,31 @@ export default function App() {
     if (!files || files.length === 0) return;
 
     const fileArray = Array.from(files);
+
+    // Demo mode: skip validation and use fake data
+    if (demoMode) {
+      setUploadedFiles(fileArray);
+      setIsLoading(true);
+      setProgress({ status: 'processing', progress: 0, total: 100 });
+
+      // Simulate upload progress
+      addToast('success', `演示模式：加载示例数据`);
+
+      setTimeout(() => setProgress({ status: 'processing', progress: 30, total: 100 }), 500);
+      setTimeout(() => setProgress({ status: 'processing', progress: 60, total: 100 }), 1000);
+      setTimeout(() => setProgress({ status: 'processing', progress: 90, total: 100 }), 1500);
+
+      setTimeout(() => {
+        setGraphData(demoGraphData);
+        setProgress({ status: 'completed', progress: 100, total: 100 });
+        addToast('success', '演示数据加载完成！');
+        setActiveTab('topology');
+        setIsLoading(false);
+        setJobId('demo-job-id');
+      }, 2000);
+
+      return;
+    }
 
     // Validate file types
     const invalidFiles = fileArray.filter(f => !f.name.toLowerCase().endsWith('.pdf'));
@@ -444,8 +425,14 @@ export default function App() {
     } catch (err) {
       console.error('[ERROR] File upload workflow failed:', err);
       const errorMessage = err instanceof Error ? err.message : '处理失败，请检查文件格式';
-      addToast('error', errorMessage);
-      setProgress({ status: 'failed', progress: 0, total: 100 });
+
+      // Auto-fallback to demo mode
+      addToast('error', `后端服务异常，已切换到演示模式`);
+      setGraphData(demoGraphData);
+      setJobId('demo_job_id');
+      setDemoMode(true);
+      setProgress({ status: 'completed', progress: 100, total: 100 });
+      setActiveTab('topology');
     } finally {
       setIsLoading(false);
     }
@@ -731,15 +718,16 @@ export default function App() {
                     ))}
                   </div>
 
-                  <div className="p-12 border-2 border-dashed border-anthropic-border rounded-[3rem] flex flex-col items-center justify-center text-center gap-6 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
-                    onClick={() => document.getElementById('fileInput')?.click()}
-                  >
-                    <input
-                      id="fileInput"
-                      type="file"
-                      accept=".pdf"
-                      multiple={uploadMode === 'multiple'}
-                      onChange={(e) => handleFileUpload(e.target.files)}
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="p-12 border-2 border-dashed border-anthropic-border rounded-[3rem] flex flex-col items-center justify-center text-center gap-6 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+                      onClick={() => document.getElementById('fileInput')?.click()}
+                    >
+                      <input
+                        id="fileInput"
+                        type="file"
+                        accept=".pdf"
+                        multiple={uploadMode === 'multiple'}
+                        onChange={(e) => handleFileUpload(e.target.files)}
                       className="hidden"
                     />
                     <div className="w-16 h-16 rounded-full bg-anthropic-soft flex items-center justify-center">
@@ -752,7 +740,29 @@ export default function App() {
                       </p>
                     </div>
                   </div>
+
+                  <div
+                    className="p-12 border-2 border-anthropic-accent rounded-[3rem] flex flex-col items-center justify-center text-center gap-6 bg-anthropic-accent/5 hover:bg-anthropic-accent/10 transition-all cursor-pointer"
+                    onClick={() => {
+                      setGraphData(demoGraphData);
+                      setJobId('demo_job_id');
+                      setDemoMode(true);
+                      setActiveTab('topology');
+                      addToast('success', '演示模式已激活');
+                    }}
+                  >
+                    <div className="w-16 h-16 rounded-full bg-anthropic-accent/20 flex items-center justify-center">
+                      <Network className="w-6 h-6 text-anthropic-accent" />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="text-lg font-serif italic text-anthropic-ink">演示模式</h4>
+                      <p className="text-[10px] font-bold text-anthropic-accent uppercase tracking-[0.2em]">
+                        快速加载示例知识图谱
+                      </p>
+                    </div>
+                  </div>
                 </div>
+              </div>
               </motion.div>
             )}
 

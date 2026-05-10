@@ -1,0 +1,266 @@
+[
+  {
+    "data": {
+      "id": "node_0",
+      "label": "生理学",
+      "category": "concept",
+      "definition": "研究人体正常生理功能的科学，为医学提供正常参考值范围",
+      "textbook": "03_ÉúÀíÑ§.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_17",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_1",
+      "label": "医学",
+      "category": "concept",
+      "definition": "临床诊断、治疗、康复等实践领域，依赖生理学知识",
+      "textbook": "03_ÉúÀíÑ§.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_17",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_2",
+      "label": "细胞",
+      "category": "concept",
+      "definition": "构成人体最基本的结构和功能单位",
+      "textbook": "03_ÉúÀíÑ§.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_17",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_3",
+      "label": "组织",
+      "category": "concept",
+      "definition": "由不同细胞群构成的结构层次",
+      "textbook": "03_ÉúÀíÑ§.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_17",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_4",
+      "label": "器官",
+      "category": "concept",
+      "definition": "由多种组织有机组合构成的结构",
+      "textbook": "03_ÉúÀíÑ§.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_17",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_5",
+      "label": "系统",
+      "category": "concept",
+      "definition": "功能相关的器官组成的体系，各司其职并互相配合",
+      "textbook": "03_ÉúÀíÑ§.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_17",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_6",
+      "label": "消化系统",
+      "category": "concept",
+      "definition": "从外界摄取食物并进行消化和吸收的系统",
+      "textbook": "03_ÉúÀíÑ§.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_17",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_7",
+      "label": "循环系统",
+      "category": "concept",
+      "definition": "以血液为载体运输营养物质至全身的系统",
+      "textbook": "03_ÉúÀíÑ§.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_17",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_8",
+      "label": "呼吸系统",
+      "category": "concept",
+      "definition": "从外界摄取氧气并排出二氧化碳的系统",
+      "textbook": "03_ÉúÀíÑ§.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_17",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_9",
+      "label": "肾脏",
+      "category": "concept",
+      "definition": "通过滤过、重吸收和分泌排泄功能排出代谢产物的器官",
+      "textbook": "03_ÉúÀíÑ§.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_17",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_10",
+      "label": "神经和内分泌系统",
+      "category": "concept",
+      "definition": "对机体生理活动发挥调节和整合作用的系统",
+      "textbook": "03_ÉúÀíÑ§.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_17",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_11",
+      "label": "心电生理",
+      "category": "concept",
+      "definition": "研究心脏电活动的生理学分支",
+      "textbook": "03_ÉúÀíÑ§.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_17",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_12",
+      "label": "经导管射频消融技术",
+      "category": "concept",
+      "definition": "治疗心律失常的临床技术",
+      "textbook": "03_ÉúÀíÑ§.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_17",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_13",
+      "label": "诺贝尔生理学或医学奖",
+      "category": "concept",
+      "definition": "诺贝尔基金会设立的奖项，表彰生理学与医学领域的贡献",
+      "textbook": "03_ÉúÀíÑ§.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_17",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "node_14",
+      "label": "新陈代谢",
+      "category": "concept",
+      "definition": "细胞进行生命活动所需能量和原料的代谢过程",
+      "textbook": "03_ÉúÀíÑ§.pdf",
+      "source_page": 25,
+      "source_chunk": "chunk_17",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "edge_0",
+      "source": "node_0",
+      "target": "node_1"
+    }
+  },
+  {
+    "data": {
+      "id": "edge_1",
+      "source": "node_0",
+      "target": "node_11"
+    }
+  },
+  {
+    "data": {
+      "id": "edge_2",
+      "source": "node_11",
+      "target": "node_12"
+    }
+  },
+  {
+    "data": {
+      "id": "edge_3",
+      "source": "node_2",
+      "target": "node_3"
+    }
+  },
+  {
+    "data": {
+      "id": "edge_4",
+      "source": "node_3",
+      "target": "node_4"
+    }
+  },
+  {
+    "data": {
+      "id": "edge_5",
+      "source": "node_4",
+      "target": "node_5"
+    }
+  },
+  {
+    "data": {
+      "id": "edge_6",
+      "source": "node_6",
+      "target": "node_14"
+    }
+  },
+  {
+    "data": {
+      "id": "edge_7",
+      "source": "node_7",
+      "target": "node_6"
+    }
+  },
+  {
+    "data": {
+      "id": "edge_8",
+      "source": "node_8",
+      "target": "node_14"
+    }
+  },
+  {
+    "data": {
+      "id": "edge_9",
+      "source": "node_9",
+      "target": "node_14"
+    }
+  },
+  {
+    "data": {
+      "id": "edge_10",
+      "source": "node_10",
+      "target": "node_5"
+    }
+  },
+  {
+    "data": {
+      "id": "edge_11",
+      "source": "node_0",
+      "target": "node_13"
+    }
+  }
+]

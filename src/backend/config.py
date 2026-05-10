@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     rag_temperature: float = 0.3
 
     # Knowledge Graph Configuration
-    kg_max_chunks: int = 10
+    kg_max_chunks: int = 50
     kg_max_tokens: int = 2000
     kg_temperature: float = 0.3
 
@@ -55,3 +55,10 @@ class Settings(BaseSettings):
 
 # Global settings instance
 settings = Settings()
+
+# Diagnostic logging
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.info(f"[CONFIG] Settings loaded - API key present: {bool(settings.deepseek_api_key and settings.deepseek_api_key != 'your_key_here')}")
+logger.info(f"[CONFIG] API key value: {settings.deepseek_api_key[:10]}..." if settings.deepseek_api_key and settings.deepseek_api_key != 'your_key_here' else "[CONFIG] API key NOT configured")

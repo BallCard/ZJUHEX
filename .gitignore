@@ -44,6 +44,7 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.bak
+~$*
 
 # Textbook data (do not upload to GitHub)
 data/textbooks/*.pdf
@@ -57,6 +58,9 @@ textbooks-skills/
 
 # Temporary extracted files
 赛题内容.txt
+
+# Large diagnostic output
+context_breaks.txt
 
 # Vector database
 *.faiss

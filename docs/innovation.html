@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专业医学知识点阵引擎 - 创新点展示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 60px;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header .subtitle {
+            font-size: 20px;
+            opacity: 0.9;
+        }
+
+        .innovation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .innovation-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .innovation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .innovation-card .icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .innovation-card h3 {
+            font-size: 24px;
+            color: #1a202c;
+            margin-bottom: 12px;
+        }
+
+        .innovation-card .tag {
+            display: inline-block;
+            background: #edf2f7;
+            color: #667eea;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .innovation-card p {
+            color: #4a5568;
+            line-height: 1.8;
+            margin-bottom: 16px;
+        }
+
+        .innovation-card ul {
+            list-style: none;
+            margin-top: 16px;
+        }
+
+        .innovation-card ul li {
+            color: #2d3748;
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .innovation-card ul li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .highlight-section {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+        }
+
+        .highlight-section h2 {
+            font-size: 32px;
+            color: #1a202c;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 24px;
+        }
+
+        .tech-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .comparison-table {
+            width: 100%;
+            margin-top: 24px;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .comparison-table th {
+            background: #f7fafc;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .comparison-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .check {
+            color: #48bb78;
+            font-weight: bold;
+        }
+
+        .cross {
+            color: #f56565;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 32px;
+            }
+
+            .innovation-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .highlight-section {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 专业医学知识点阵引擎</h1>
+            <p class="subtitle">AI驱动的跨教材知识整合与语义检索系统</p>
+        </div>
+
+        <div class="innovation-grid">
+            <div class="innovation-card">
+                <div class="icon">🧠</div>
+                <span class="tag">核心创新</span>
+                <h3>跨教材知识图谱融合</h3>
+                <p>突破传统单一教材的局限，实现多本医学教材的知识自动整合与去重。</p>
+                <ul>
+                    <li>自动识别不同教材中的相同概念</li>
+                    <li>智能合并重复知识点，保留最完整定义</li>
+                    <li>构建跨教材的语义关联网络</li>
+                    <li>支持解剖学、生理学、病理学等多学科融合</li>
+                </ul>
+            </div>
+
+            <div class="innovation-card">
+                <div class="icon">🎯</div>
+                <span class="tag">技术突破</span>
+                <h3>智能章节识别与提取</h3>
+                <p>基于启发式算法的内容检测系统，精准定位教材有效内容。</p>
+                <ul>
+                    <li>自动跳过封面、目录、前言等无效内容</li>
+                    <li>识别章节标题和层级结构</li>
+                    <li>智能选择完整章节进行处理</li>
+                    <li>避免处理碎片化内容，提升知识完整性</li>
+                </ul>
+            </div>
+
+            <div class="innovation-card">
+                <div class="icon">⚡</div>
+                <span class="tag">性能优化</span>
+                <h3>增量式异步处理架构</h3>
+                <p>解决大规模文档处理的超时和性能问题。</p>
+                <ul>
+                    <li>分块异步提取，避免LLM超时</li>
+                    <li>Per-chunk缓存机制，避免重复调用</li>
+                    <li>实时进度追踪，用户体验友好</li>
+                    <li>支持断点续传，处理失败自动重试</li>
+                </ul>
+            </div>
+
+            <div class="innovation-card">
+                <div class="icon">🔍</div>
+                <span class="tag">用户体验</span>
+                <h3>多模态知识检索</h3>
+                <p>结合图谱可视化和RAG问答，提供立体化知识获取体验。</p>
+                <ul>
+                    <li>交互式知识图谱可视化</li>
+                    <li>点击节点查看详细定义和来源</li>
+                    <li>AI问答助手，自然语言查询</li>
+                    <li>引用溯源，每个答案都有教材出处</li>
+                </ul>
+            </div>
+
+            <div class="innovation-card">
+                <div class="icon">📊</div>
+                <span class="tag">数据洞察</span>
+                <h3>知识整合报告生成</h3>
+                <p>自动生成跨教材知识整合分析报告。</p>
+                <ul>
+                    <li>统计各教材的知识点贡献度</li>
+                    <li>识别知识冲突和互补关系</li>
+                    <li>可视化知识覆盖度分析</li>
+                    <li>导出Markdown格式报告</li>
+                </ul>
+            </div>
+
+            <div class="innovation-card">
+                <div class="icon">🚀</div>
+                <span class="tag">工程实践</span>
+                <h3>全栈工程化实现</h3>
+                <p>生产级代码质量，完整的前后端分离架构。</p>
+                <ul>
+                    <li>FastAPI后端 + React前端</li>
+                    <li>文件锁保证并发安全</li>
+                    <li>统一的错误处理和日志系统</li>
+                    <li>支持本地部署和云端部署</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="highlight-section">
+            <h2>🎨 技术栈</h2>
+            <div class="tech-stack">
+                <span class="tech-badge">DeepSeek API</span>
+                <span class="tech-badge">FastAPI</span>
+                <span class="tech-badge">React + TypeScript</span>
+                <span class="tech-badge">PyMuPDF</span>
+                <span class="tech-badge">Sentence Transformers</span>
+                <span class="tech-badge">FAISS</span>
+                <span class="tech-badge">D3.js / Force Graph</span>
+                <span class="tech-badge">Tailwind CSS</span>
+            </div>
+        </div>
+
+        <div class="highlight-section">
+            <h2>📈 与传统方案对比</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>功能特性</th>
+                        <th>传统方案</th>
+                        <th>我们的方案</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>跨教材整合</td>
+                        <td><span class="cross">✗</span> 单一教材处理</td>
+                        <td><span class="check">✓</span> 多教材自动融合</td>
+                    </tr>
+                    <tr>
+                        <td>知识去重</td>
+                        <td><span class="cross">✗</span> 手动整理</td>
+                        <td><span class="check">✓</span> 智能去重合并</td>
+                    </tr>
+                    <tr>
+                        <td>内容识别</td>
+                        <td><span class="cross">✗</span> 全文处理</td>
+                        <td><span class="check">✓</span> 智能章节识别</td>
+                    </tr>
+                    <tr>
+                        <td>大文档处理</td>
+                        <td><span class="cross">✗</span> 容易超时</td>
+                        <td><span class="check">✓</span> 异步分块处理</td>
+                    </tr>
+                    <tr>
+                        <td>知识检索</td>
+                        <td><span class="cross">✗</span> 关键词搜索</td>
+                        <td><span class="check">✓</span> 语义检索 + 图谱可视化</td>
+                    </tr>
+                    <tr>
+                        <td>引用溯源</td>
+                        <td><span class="cross">✗</span> 无来源标注</td>
+                        <td><span class="check">✓</span> 精确到页码和教材</td>
+                    </tr>
+                    <tr>
+                        <td>用户体验</td>
+                        <td><span class="cross">✗</span> 命令行工具</td>
+                        <td><span class="check">✓</span> 现代化Web界面</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="highlight-section">
+            <h2>💡 应用场景</h2>
+            <div class="innovation-grid">
+                <div class="innovation-card">
+                    <h3>📚 医学生学习</h3>
+                    <p>整合多本教材，构建完整知识体系，快速查找概念关联，提升学习效率。</p>
+                </div>
+                <div class="innovation-card">
+                    <h3>👨‍⚕️ 临床医生</h3>
+                    <p>快速检索跨学科知识，辅助临床决策，查找疾病与解剖、生理的关联。</p>
+                </div>
+                <div class="innovation-card">
+                    <h3>🏫 教学辅助</h3>
+                    <p>教师备课时整合多本参考书，生成知识图谱，设计教学路径。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

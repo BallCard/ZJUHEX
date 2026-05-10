@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识图谱可视化 - 生理学教材演示</title>
+    <script src="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .stats {
+            display: flex;
+            gap: 30px;
+            font-size: 14px;
+        }
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .stat-value {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .container {
+            display: flex;
+            height: calc(100vh - 100px);
+        }
+        #cy {
+            flex: 1;
+            background: white;
+            margin: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .sidebar {
+            width: 350px;
+            background: white;
+            margin: 10px 10px 10px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+        .sidebar h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .node-info {
+            display: none;
+        }
+        .node-info.active {
+            display: block;
+        }
+        .info-item {
+            margin-bottom: 15px;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            color: #333;
+            line-height: 1.6;
+        }
+        .legend {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📚 知识图谱可视化 - 生理学教材演示</h1>
+        <div class="stats">
+            <div class="stat-item">
+                <span>节点数:</span>
+                <span class="stat-value" id="nodeCount">-</span>
+            </div>
+            <div class="stat-item">
+                <span>关系数:</span>
+                <span class="stat-value" id="edgeCount">-</span>
+            </div>
+            <div class="stat-item">
+                <span>压缩比:</span>
+                <span class="stat-value">0.78%</span>
+            </div>
+            <div class="stat-item">
+                <span>去重率:</span>
+                <span class="stat-value">9.88%</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="cy"></div>
+        <div class="sidebar">
+            <div class="controls">
+                <button class="btn" onclick="cy.fit()">适应画布</button>
+                <button class="btn" onclick="cy.center()">居中</button>
+            </div>
+
+            <div id="defaultInfo">
+                <h2>💡 使用说明</h2>
+                <p style="color: #666; line-height: 1.8;">
+                    • 点击节点查看详细信息<br>
+                    • 拖拽节点调整位置<br>
+                    • 滚轮缩放画布<br>
+                    • 拖拽空白区域平移<br>
+                </p>
+
+                <div class="legend">
+                    <h2>🎨 图例</h2>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #667eea;"></div>
+                        <span>概念节点</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f093fb;"></div>
+                        <span>人物节点</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #4facfe;"></div>
+                        <span>机构节点</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="nodeInfo" class="node-info">
+                <h2>📋 节点详情</h2>
+                <div class="info-item">
+                    <div class="info-label">名称</div>
+                    <div class="info-value" id="nodeName">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">类型</div>
+                    <div class="info-value" id="nodeType">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">定义</div>
+                    <div class="info-value" id="nodeDefinition">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">来源</div>
+                    <div class="info-value" id="nodeSource">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">连接数</div>
+                    <div class="info-value" id="nodeConnections">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load graph data
+        fetch('knowledge_graph.json')
+            .then(response => response.json())
+            .then(data => {
+                // Update stats
+                document.getElementById('nodeCount').textContent = data.nodes.length;
+                document.getElementById('edgeCount').textContent = data.edges.length;
+
+                // Convert to Cytoscape format
+                const elements = [];
+
+                // Add nodes
+                data.nodes.forEach(node => {
+                    elements.push({
+                        data: {
+                            id: node.id,
+                            label: node.label,
+                            type: node.type,
+                            definition: node.definition,
+                            source_chunks: node.source_chunks || []
+                        }
+                    });
+                });
+
+                // Add edges
+                data.edges.forEach((edge, i) => {
+                    elements.push({
+                        data: {
+                            id: edge.id || `edge_${i}`,
+                            source: edge.source,
+                            target: edge.target,
+                            relation: edge.relation,
+                            description: edge.description || ''
+                        }
+                    });
+                });
+
+                // Initialize Cytoscape
+                window.cy = cytoscape({
+                    container: document.getElementById('cy'),
+                    elements: elements,
+                    style: [
+                        {
+                            selector: 'node',
+                            style: {
+                                'background-color': function(ele) {
+                                    const type = ele.data('type');
+                                    if (type === 'person') return '#f093fb';
+                                    if (type === 'organization') return '#4facfe';
+                                    return '#667eea';
+                                },
+                                'label': 'data(label)',
+                                'color': '#fff',
+                                'text-valign': 'center',
+                                'text-halign': 'center',
+                                'font-size': '12px',
+                                'width': function(ele) {
+                                    return Math.min(ele.data('label').length * 8 + 20, 100);
+                                },
+                                'height': function(ele) {
+                                    return Math.min(ele.data('label').length * 8 + 20, 100);
+                                },
+                                'text-wrap': 'wrap',
+                                'text-max-width': '80px'
+                            }
+                        },
+                        {
+                            selector: 'edge',
+                            style: {
+                                'width': 2,
+                                'line-color': '#ccc',
+                                'target-arrow-color': '#ccc',
+                                'target-arrow-shape': 'triangle',
+                                'curve-style': 'bezier',
+                                'label': 'data(relation)',
+                                'font-size': '10px',
+                                'color': '#999',
+                                'text-rotation': 'autorotate',
+                                'text-margin-y': -10
+                            }
+                        },
+                        {
+                            selector: 'node:selected',
+                            style: {
+                                'border-width': 3,
+                                'border-color': '#ff6b6b'
+                            }
+                        }
+                    ],
+                    layout: {
+                        name: 'cose',
+                        animate: true,
+                        animationDuration: 1000,
+                        nodeRepulsion: 8000,
+                        idealEdgeLength: 100,
+                        edgeElasticity: 100,
+                        nestingFactor: 5,
+                        gravity: 80,
+                        numIter: 1000,
+                        initialTemp: 200,
+                        coolingFactor: 0.95,
+                        minTemp: 1.0
+                    }
+                });
+
+                // Node click handler
+                cy.on('tap', 'node', function(evt) {
+                    const node = evt.target;
+                    const data = node.data();
+
+                    // Show node info
+                    document.getElementById('defaultInfo').style.display = 'none';
+                    document.getElementById('nodeInfo').classList.add('active');
+
+                    document.getElementById('nodeName').textContent = data.label;
+                    document.getElementById('nodeType').textContent = data.type;
+                    document.getElementById('nodeDefinition').textContent = data.definition || '无定义';
+                    document.getElementById('nodeSource').textContent =
+                        data.source_chunks.length > 0 ? data.source_chunks.join(', ') : '未知';
+                    document.getElementById('nodeConnections').textContent =
+                        node.connectedEdges().length + ' 个连接';
+                });
+
+                // Click on background to hide node info
+                cy.on('tap', function(evt) {
+                    if (evt.target === cy) {
+                        document.getElementById('defaultInfo').style.display = 'block';
+                        document.getElementById('nodeInfo').classList.remove('active');
+                    }
+                });
+
+                console.log('Knowledge graph loaded:', data.nodes.length, 'nodes,', data.edges.length, 'edges');
+            })
+            .catch(error => {
+                console.error('Error loading graph:', error);
+                alert('加载知识图谱失败，请确保 knowledge_graph.json 文件存在');
+            });
+    </script>
+</body>
+</html>
