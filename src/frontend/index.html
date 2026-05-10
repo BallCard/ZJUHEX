@@ -1,14 +1,855 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
-    <script type="module" crossorigin src="./assets/index-DBodxZON.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-O6JmcYIe.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
-</html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>医学教材知识整合系统</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            background: #f0f4ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+
+        .status.info {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status.success {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #333;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .report-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .rag-section {
+            margin-top: 20px;
+        }
+
+        .rag-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .rag-answer {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .citation {
+            background: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            margin: 10px 0;
+            font-size: 14px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .citation:hover {
+            background: #e8eaf6;
+            border-left-color: #764ba2;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #graph-section {
+            margin-top: 20px;
+        }
+
+        #cy {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        #node-detail-panel {
+            margin-top: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        #node-detail-panel h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        #node-info p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        #node-info strong {
+            color: #333;
+        }
+
+        .graph-empty-hint {
+            text-align: center;
+            padding: 100px 20px;
+            color: #999;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>医学教材知识整合系统</h1>
+        <p class="subtitle">AI全栈黑客松 - 学科知识整合智能体 (P0 Demo)</p>
+
+        <!-- Upload Section -->
+        <div class="section">
+            <h2>1. 上传教材</h2>
+            <div style="margin-bottom: 15px;">
+                <label style="margin-right: 20px;">
+                    <input type="radio" name="uploadMode" value="single" checked onchange="switchUploadMode()">
+                    单教材模式
+                </label>
+                <label>
+                    <input type="radio" name="uploadMode" value="multiple" onchange="switchUploadMode()">
+                    跨教材整合模式
+                </label>
+            </div>
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <input type="file" id="fileInput" accept=".pdf" onchange="uploadFile()">
+                <p id="uploadHint">点击上传PDF教材文件</p>
+                <p style="color: #999; font-size: 14px; margin-top: 10px;">支持格式: PDF</p>
+            </div>
+            <div id="uploadStatus"></div>
+        </div>
+
+        <!-- Pipeline Section -->
+        <div class="section">
+            <h2>2. 知识整合流水线</h2>
+            <div class="progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+                <div class="progress-text" id="progressText">等待开始...</div>
+            </div>
+            <div id="pipelineStatus"></div>
+            <button class="btn" id="runPipelineBtn" onclick="runPipeline()" disabled>运行整合流水线</button>
+        </div>
+
+        <!-- Statistics Section -->
+        <div class="section">
+            <h2>3. 整合统计</h2>
+            <div class="stats" id="stats">
+                <div class="stat-card">
+                    <div class="stat-label">原始字符数</div>
+                    <div class="stat-value" id="originalChars">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">整合后字符数</div>
+                    <div class="stat-value" id="dedupChars">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">压缩比</div>
+                    <div class="stat-value" id="compressionRatio">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">知识节点数</div>
+                    <div class="stat-value" id="nodesCount">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graph Visualization Section -->
+        <div class="section" id="graph-section" style="display:none;">
+            <h2>3.5 知识图谱可视化</h2>
+            <div id="graph-container">
+                <div id="cy"></div>
+            </div>
+            <div id="node-detail-panel" style="display:none;">
+                <h3>节点详情</h3>
+                <div id="node-info"></div>
+            </div>
+        </div>
+
+        <!-- Report Section -->
+        <div class="section">
+            <h2>4. 整合报告</h2>
+            <button class="btn" id="viewReportBtn" onclick="viewReport()" disabled>查看报告</button>
+            <div class="report-content" id="reportContent" style="display: none;"></div>
+        </div>
+
+        <!-- RAG Section -->
+        <div class="section">
+            <h2>5. 知识问答 (RAG)</h2>
+            <input type="text" class="rag-input" id="ragQuestion" placeholder="输入问题，例如：细胞膜的结构是什么？" disabled>
+            <button class="btn" id="ragQueryBtn" onclick="queryRAG()" disabled>提问</button>
+            <div class="rag-answer" id="ragAnswer" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://web-production-8f412.up.railway.app';
+        let currentJobId = null;
+        let uploadMode = 'single'; // 'single' or 'multiple'
+
+        function switchUploadMode() {
+            const mode = document.querySelector('input[name="uploadMode"]:checked').value;
+            uploadMode = mode;
+
+            const fileInput = document.getElementById('fileInput');
+            const uploadHint = document.getElementById('uploadHint');
+
+            if (mode === 'multiple') {
+                fileInput.setAttribute('multiple', 'multiple');
+                uploadHint.textContent = '点击上传多个PDF教材文件（支持多选）';
+            } else {
+                fileInput.removeAttribute('multiple');
+                uploadHint.textContent = '点击上传PDF教材文件';
+            }
+
+            // Reset upload status
+            document.getElementById('uploadStatus').innerHTML = '';
+            currentJobId = null;
+            document.getElementById('runPipelineBtn').disabled = true;
+        }
+
+        function showStatus(elementId, message, type = 'info') {
+            const el = document.getElementById(elementId);
+            el.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const files = fileInput.files;
+
+            if (!files || files.length === 0) return;
+
+            showStatus('uploadStatus', '上传中...', 'info');
+
+            const formData = new FormData();
+
+            if (uploadMode === 'multiple') {
+                // Multiple files upload
+                for (let i = 0; i < files.length; i++) {
+                    formData.append('files', files[i]);
+                }
+
+                try {
+                    const response = await fetch(`${API_BASE}/api/upload_multiple`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    currentJobId = data.job_id;
+
+                    showStatus('uploadStatus',
+                        `上传成功！已上传 ${data.textbook_count} 本教材<br>Job ID: ${currentJobId}`,
+                        'success');
+                    document.getElementById('runPipelineBtn').disabled = false;
+                    document.getElementById('runPipelineBtn').textContent = '运行跨教材整合流水线';
+                } catch (error) {
+                    showStatus('uploadStatus', `上传失败: ${error.message}`, 'error');
+                }
+            } else {
+                // Single file upload
+                formData.append('file', files[0]);
+
+                try {
+                    const response = await fetch(`${API_BASE}/api/upload`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    currentJobId = data.job_id;
+
+                    showStatus('uploadStatus', `上传成功！Job ID: ${currentJobId}`, 'success');
+                    document.getElementById('runPipelineBtn').disabled = false;
+                    document.getElementById('runPipelineBtn').textContent = '运行整合流水线';
+                } catch (error) {
+                    showStatus('uploadStatus', `上传失败: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function runPipeline() {
+            if (!currentJobId) return;
+
+            document.getElementById('runPipelineBtn').disabled = true;
+
+            if (uploadMode === 'multiple') {
+                await runCrossTextbookPipeline();
+            } else {
+                await runSingleTextbookPipeline();
+            }
+        }
+
+        async function runSingleTextbookPipeline() {
+            showStatus('pipelineStatus', '启动流水线... <span class="loading"></span>', 'info');
+            document.getElementById('progressText').textContent = '准备中...';
+
+            const phases = [
+                { name: 'parse', label: '解析文档', endpoint: `/api/parse/${currentJobId}` },
+                { name: 'build_graph', label: '构建知识图谱', endpoint: `/api/build_graph/${currentJobId}` },
+                { name: 'integrate', label: '去重整合', endpoint: `/api/integrate/${currentJobId}` },
+                { name: 'generate_report', label: '生成报告', endpoint: `/api/generate_report/${currentJobId}` },
+                { name: 'rag_index', label: '建立RAG索引', endpoint: `/api/rag/index/${currentJobId}` }
+            ];
+
+            for (let i = 0; i < phases.length; i++) {
+                const phase = phases[i];
+                const progressPercent = ((i + 1) / phases.length * 100);
+
+                showStatus('pipelineStatus', `${phase.label}中... <span class="loading"></span>`, 'info');
+                document.getElementById('progressText').textContent = `${phase.label} (${i + 1}/${phases.length})`;
+                document.getElementById('progressFill').style.width = `${progressPercent}%`;
+
+                try {
+                    // For build_graph phase, start polling progress
+                    if (phase.name === 'build_graph') {
+                        const response = await fetch(`${API_BASE}${phase.endpoint}`, { method: 'POST' });
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.detail || `HTTP ${response.status}`);
+                        }
+
+                        // Start polling for build_graph progress
+                        await new Promise((resolve, reject) => {
+                            const pollInterval = setInterval(async () => {
+                                try {
+                                    const progressResp = await fetch(`${API_BASE}/api/jobs/${currentJobId}/progress`);
+                                    const progressData = await progressResp.json();
+
+                                    // Update progress display
+                                    if (progressData.progress && progressData.total) {
+                                        document.getElementById('progressText').textContent =
+                                            `${phase.label} (${progressData.progress}/${progressData.total})`;
+                                    }
+
+                                    if (progressData.status === 'graph_built') {
+                                        clearInterval(pollInterval);
+                                        if (progressData.extraction_stats) {
+                                            document.getElementById('nodesCount').textContent =
+                                                progressData.extraction_stats.success || 0;
+                                        }
+                                        resolve();
+                                    } else if (progressData.status === 'failed') {
+                                        clearInterval(pollInterval);
+                                        reject(new Error(progressData.error || '知识图谱构建失败'));
+                                    }
+                                } catch (err) {
+                                    clearInterval(pollInterval);
+                                    reject(err);
+                                }
+                            }, 2000);
+                        });
+                    } else {
+                        // For other phases, simple POST request
+                        const response = await fetch(`${API_BASE}${phase.endpoint}`, { method: 'POST' });
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.detail || `HTTP ${response.status}`);
+                        }
+
+                        // Update stats based on phase
+                        if (phase.name === 'parse' && data.total_chars) {
+                            document.getElementById('originalChars').textContent = data.total_chars.toLocaleString();
+                        } else if (phase.name === 'integrate') {
+                            // Fetch and render graph after integration
+                            try {
+                                const graphResp = await fetch(`${API_BASE}/api/graph/${currentJobId}`);
+                                const graphData = await graphResp.json();
+                                if (graphResp.ok && graphData.nodes) {
+                                    renderGraph(graphData);
+                                    document.getElementById('nodesCount').textContent = graphData.nodes.length;
+                                }
+                            } catch (err) {
+                                console.error('Failed to load graph:', err);
+                            }
+                        } else if (phase.name === 'generate_report' && data.compression_ratio) {
+                            document.getElementById('compressionRatio').textContent = `${data.compression_ratio.toFixed(2)}%`;
+                            document.getElementById('viewReportBtn').disabled = false;
+                        }
+                    }
+
+                    showStatus('pipelineStatus', `${phase.label}完成`, 'success');
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                } catch (error) {
+                    showStatus('pipelineStatus', `${phase.label}失败: ${error.message}`, 'error');
+                    document.getElementById('progressText').textContent = '失败';
+                    document.getElementById('runPipelineBtn').disabled = false;
+                    return;
+                }
+            }
+
+            showStatus('pipelineStatus', '整合流水线完成！', 'success');
+            document.getElementById('progressText').textContent = '完成';
+            document.getElementById('progressFill').style.width = '100%';
+            document.getElementById('ragQuestion').disabled = false;
+            document.getElementById('ragQueryBtn').disabled = false;
+        }
+
+        async function runCrossTextbookPipeline() {
+            showStatus('pipelineStatus', '启动跨教材整合流水线... <span class="loading"></span>', 'info');
+            document.getElementById('progressText').textContent = '准备中...';
+
+            const phases = [
+                { name: 'parse_multiple', label: '解析所有教材', endpoint: `/api/parse_multiple/${currentJobId}` },
+                { name: 'build_graphs', label: '构建知识图谱', endpoint: `/api/build_graphs_multiple/${currentJobId}` },
+                { name: 'cross_integrate', label: '跨教材整合', endpoint: `/api/cross_integrate/${currentJobId}` }
+            ];
+
+            for (let i = 0; i < phases.length; i++) {
+                const phase = phases[i];
+                const progressPercent = ((i + 1) / phases.length * 100);
+
+                showStatus('pipelineStatus', `${phase.label}中... <span class="loading"></span>`, 'info');
+                document.getElementById('progressText').textContent = `${phase.label} (${i + 1}/${phases.length})`;
+                document.getElementById('progressFill').style.width = `${progressPercent}%`;
+
+                try {
+                    if (phase.name === 'build_graphs') {
+                        // Start async graph building
+                        const response = await fetch(`${API_BASE}${phase.endpoint}`, { method: 'POST' });
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.detail || `HTTP ${response.status}`);
+                        }
+
+                        // Poll for completion
+                        await new Promise((resolve, reject) => {
+                            const pollInterval = setInterval(async () => {
+                                try {
+                                    const progressResp = await fetch(`${API_BASE}/api/jobs/${currentJobId}/progress`);
+                                    const progressData = await progressResp.json();
+
+                                    if (progressData.status === 'graphs_built') {
+                                        clearInterval(pollInterval);
+                                        resolve();
+                                    } else if (progressData.status === 'failed' || progressData.status === 'partially_failed') {
+                                        clearInterval(pollInterval);
+                                        reject(new Error(progressData.error || '知识图谱构建失败'));
+                                    }
+                                } catch (err) {
+                                    clearInterval(pollInterval);
+                                    reject(err);
+                                }
+                            }, 3000);
+                        });
+                    } else {
+                        // Simple POST request
+                        const response = await fetch(`${API_BASE}${phase.endpoint}`, { method: 'POST' });
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.detail || `HTTP ${response.status}`);
+                        }
+
+                        // Update stats
+                        if (phase.name === 'parse_multiple' && data.total_chunks) {
+                            document.getElementById('originalChars').textContent = data.total_chunks.toLocaleString();
+                        } else if (phase.name === 'cross_integrate') {
+                            document.getElementById('nodesCount').textContent = data.merged_nodes;
+                            const dedupRatio = (1 - data.deduplication_ratio) * 100;
+                            document.getElementById('compressionRatio').textContent = `${dedupRatio.toFixed(2)}%`;
+
+                            // Fetch and render cross-textbook graph
+                            try {
+                                const graphResp = await fetch(`${API_BASE}/api/cross_graph/${currentJobId}`);
+                                const graphData = await graphResp.json();
+                                if (graphResp.ok && graphData.nodes) {
+                                    renderGraph(graphData);
+                                }
+                            } catch (err) {
+                                console.error('Failed to load cross-textbook graph:', err);
+                            }
+
+                            // Enable view report button (use cross-textbook report)
+                            document.getElementById('viewReportBtn').disabled = false;
+                            document.getElementById('viewReportBtn').onclick = viewCrossTextbookReport;
+                        }
+                    }
+
+                    showStatus('pipelineStatus', `${phase.label}完成`, 'success');
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                } catch (error) {
+                    showStatus('pipelineStatus', `${phase.label}失败: ${error.message}`, 'error');
+                    document.getElementById('progressText').textContent = '失败';
+                    document.getElementById('runPipelineBtn').disabled = false;
+                    return;
+                }
+            }
+
+            showStatus('pipelineStatus', '跨教材整合流水线完成！', 'success');
+            document.getElementById('progressText').textContent = '完成';
+            document.getElementById('progressFill').style.width = '100%';
+        }
+
+        async function viewReport() {
+            if (!currentJobId) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/report/${currentJobId}`);
+                const data = await response.json();
+
+                document.getElementById('reportContent').textContent = data.content;
+                document.getElementById('reportContent').style.display = 'block';
+            } catch (error) {
+                alert(`查看报告失败: ${error.message}`);
+            }
+        }
+
+        async function viewCrossTextbookReport() {
+            if (!currentJobId) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/cross_report/${currentJobId}`);
+                const data = await response.json();
+
+                document.getElementById('reportContent').textContent = data.content;
+                document.getElementById('reportContent').style.display = 'block';
+            } catch (error) {
+                alert(`查看报告失败: ${error.message}`);
+            }
+        }
+
+        async function queryRAG() {
+            const question = document.getElementById('ragQuestion').value.trim();
+            if (!question || !currentJobId) return;
+
+            document.getElementById('ragQueryBtn').disabled = true;
+            document.getElementById('ragAnswer').innerHTML = '<div class="loading"></div> 生成回答中...';
+            document.getElementById('ragAnswer').style.display = 'block';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/rag/query/${currentJobId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question, top_k: 3 })
+                });
+
+                const data = await response.json();
+
+                let html = `<h3 style="color: #333; margin-bottom: 15px;">问题：${data.question}</h3>`;
+                html += `<div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin: 15px 0; line-height: 1.8;">`;
+                html += `<strong style="color: #667eea;">回答：</strong><br>${data.answer.replace(/\n/g, '<br>')}`;
+                html += `</div>`;
+
+                if (data.citations && data.citations.length > 0) {
+                    html += `<h4 style="margin-top: 20px; color: #667eea;">引用来源：</h4>`;
+                    data.citations.forEach((citation, i) => {
+                        html += `<div class="citation">
+                            <strong style="color: #764ba2;">[${i + 1}] ${citation.textbook}</strong>
+                            <span style="color: #666;"> - 第${citation.page}页</span><br>
+                            <div style="margin-top: 8px; color: #555; font-style: italic;">
+                                "${citation.content.substring(0, 200)}${citation.content.length > 200 ? '...' : ''}"
+                            </div>
+                        </div>`;
+                    });
+                } else {
+                    html += `<p style="color: #999; margin-top: 15px;">无引用来源</p>`;
+                }
+
+                document.getElementById('ragAnswer').innerHTML = html;
+            } catch (error) {
+                document.getElementById('ragAnswer').innerHTML = `<div class="status error">查询失败: ${error.message}</div>`;
+            } finally {
+                document.getElementById('ragQueryBtn').disabled = false;
+            }
+        }
+
+        function renderGraph(graphData) {
+            if (!graphData || !graphData.nodes || graphData.nodes.length === 0) {
+                document.getElementById('cy').innerHTML = '<div class="graph-empty-hint">暂无图谱数据</div>';
+                document.getElementById('graph-section').style.display = 'block';
+                return;
+            }
+
+            // Convert data format for Cytoscape
+            const elements = {
+                nodes: graphData.nodes.map(node => ({
+                    data: {
+                        id: node.id,
+                        label: node.label,
+                        definition: node.definition || '无定义',
+                        source_page: node.source_page || '未知',
+                        textbook: node.textbook || '未知教材'
+                    }
+                })),
+                edges: graphData.edges.map(edge => ({
+                    data: {
+                        id: edge.id,
+                        source: edge.source,
+                        target: edge.target,
+                        relation: edge.relation || '相关'
+                    }
+                }))
+            };
+
+            // Initialize Cytoscape
+            const cy = cytoscape({
+                container: document.getElementById('cy'),
+                elements: elements,
+                style: [
+                    {
+                        selector: 'node',
+                        style: {
+                            'background-color': '#667eea',
+                            'label': 'data(label)',
+                            'color': '#fff',
+                            'text-valign': 'center',
+                            'text-halign': 'center',
+                            'font-size': '12px',
+                            'font-weight': 'bold',
+                            'width': '60px',
+                            'height': '60px',
+                            'text-wrap': 'wrap',
+                            'text-max-width': '80px'
+                        }
+                    },
+                    {
+                        selector: 'node:selected',
+                        style: {
+                            'background-color': '#764ba2',
+                            'border-width': 3,
+                            'border-color': '#fff'
+                        }
+                    },
+                    {
+                        selector: 'edge',
+                        style: {
+                            'width': 2,
+                            'line-color': '#ccc',
+                            'target-arrow-color': '#ccc',
+                            'target-arrow-shape': 'triangle',
+                            'curve-style': 'bezier',
+                            'label': 'data(relation)',
+                            'font-size': '10px',
+                            'color': '#666',
+                            'text-background-color': '#fff',
+                            'text-background-opacity': 0.8,
+                            'text-background-padding': '3px'
+                        }
+                    }
+                ],
+                layout: {
+                    name: 'cose',
+                    animate: true,
+                    animationDuration: 500,
+                    nodeRepulsion: 8000,
+                    idealEdgeLength: 100,
+                    edgeElasticity: 100,
+                    nestingFactor: 5,
+                    gravity: 80,
+                    numIter: 1000,
+                    initialTemp: 200,
+                    coolingFactor: 0.95,
+                    minTemp: 1.0
+                }
+            });
+
+            // Node click event
+            cy.on('tap', 'node', (evt) => {
+                showNodeDetail(evt.target.data());
+            });
+
+            // Background click to hide detail panel
+            cy.on('tap', (evt) => {
+                if (evt.target === cy) {
+                    document.getElementById('node-detail-panel').style.display = 'none';
+                }
+            });
+
+            // Show graph section
+            document.getElementById('graph-section').style.display = 'block';
+        }
+
+        function showNodeDetail(nodeData) {
+            const panel = document.getElementById('node-detail-panel');
+            const info = document.getElementById('node-info');
+
+            info.innerHTML = `
+                <p><strong>名称：</strong>${nodeData.label}</p>
+                <p><strong>定义：</strong>${nodeData.definition}</p>
+                <p><strong>来源：</strong>${nodeData.textbook} 第${nodeData.source_page}页</p>
+            `;
+
+            panel.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
