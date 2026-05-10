@@ -31,8 +31,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 venv\Scripts\activate  # Windows
 # source venv/bin/activate  # Linux/Mac
 
-# Install dependencies
+# Install dependencies (P0 minimal stack)
 pip install -r requirements.txt
+
+# Configure API keys
+# Create .env file with:
+# DEEPSEEK_API_KEY=your_key_here
 ```
 
 ### Running the Application
@@ -42,9 +46,8 @@ pip install -r requirements.txt
 cd src/backend
 uvicorn main:app --reload --port 8000
 
-# Frontend
-cd src/frontend
-npm run dev
+# Frontend (P0: Single HTML file)
+# Open src/frontend/index.html in browser
 ```
 
 ## Project Structure
@@ -53,48 +56,78 @@ npm run dev
 Hex/
 ├── src/
 │   ├── backend/          # FastAPI后端
-│   │   ├── main.py       # 主入口
-│   │   ├── api/          # API路由
-│   │   ├── services/     # 业务逻辑
-│   │   │   ├── parser.py       # 文档解析
-│   │   │   ├── knowledge_graph.py  # 知识图谱构建
-│   │   │   ├── integration.py      # 跨教材整合
-│   │   │   └── rag.py              # RAG问答
-│   │   └── models/       # 数据模型
-│   └── frontend/         # React/Vue前端
+│   │   ├── main.py       # 主入口 + API路由
+│   │   └── services/     # 业务逻辑
+│   │       ├── parser.py           # 文档解析 (MinerU)
+│   │       ├── knowledge_graph.py  # 知识图谱构建 (LLM提取)
+│   │       ├── integration.py      # 去重整合 (sentence-transformers)
+│   │       ├── report_generator.py # 整合报告生成
+│   │       └── rag.py              # RAG问答 (FAISS + citations)
+│   └── frontend/         # 前端
+│       └── index.html    # P0: 单HTML文件 (Cytoscape.js)
 ├── docs/                 # 开发文档
-│   ├── 需求分析.md
+│   ├── mvp-p0-implementation-plan.md  # 实施计划 (已优化)
+│   ├── Agent架构说明.md               # 架构设计 (20分关键)
 │   ├── 系统设计.md
-│   └── Agent架构说明.md
-├── report/               # 整合报告
-└── data/                 # 数据目录
-    └── textbooks/        # 教材文件（不上传GitHub）
+│   ├── 需求分析.md
+│   └── 开发日志.md                    # 过程性总结
+├── report/               # 整合报告输出目录
+│   └── 整合报告_{job_id}.md
+├── data/
+│   ├── textbooks/        # 教材文件（不上传GitHub）
+│   └── runtime/          # 运行时状态
+│       └── jobs/{job_id}/  # 每个任务的状态目录
+│           ├── parsed_chunks.json
+│           ├── knowledge_graph.json
+│           ├── deduplicated_graph.json
+│           ├── faiss.index
+│           └── chunks_for_rag.json
+└── 开发哲学.md           # 方法论约束
 ```
 
 ## Key Technical Decisions
 
-### 1. 文档解析策略
-- PDF：PyMuPDF，章节识别通过字体大小+正则匹配
-- 分块大小：500-800字，重叠50-100字
+### 1. P0 Scope Reduction (Based on Third-Party Review)
+- **Demo target**: Single textbook (`03_生理学.pdf`) or first 20 pages
+- **Rationale**: 5-hour constraint + empty codebase → prove concept with 1 textbook, document 7-textbook as P1
+- **Impact**: Compression ratio still calculated, but on single-textbook deduplication
 
-### 2. 知识图谱构建
-- LLM提取：每章节单独调用，输出JSON格式
-- 关系类型：prerequisite（前置依赖）、parallel（并列）、contains（包含）、applies_to（应用）
+### 2. 文档解析策略
+- **P0**: MinerU (magic-pdf) for Chinese medical PDFs
+- **Fallback**: PyMuPDF if MinerU fails
+- **Chunking**: Simple paragraph-based splitting (500-800 chars)
 
-### 3. 语义对齐算法
-- 方案1：Embedding相似度（快速，阈值0.85+）
-- 方案2：LLM判断（准确，成本高）
-- 推荐：两种结合（先Embedding筛选，再LLM确认）
+### 3. 知识图谱构建
+- **P0**: Custom JSON structure (nodes + edges), no heavy framework
+- **LLM提取**: Process first 10 chunks for demo (time constraint)
+- **P1**: LlamaIndex PropertyGraphIndex + CMeKG alignment
 
-### 4. RAG Pipeline
-- Embedding模型：sentence-transformers (paraphrase-multilingual-MiniLM-L12-v2 或 BGE-small-zh)
-- 向量数据库：FAISS（轻量）或ChromaDB
-- 检索：top-5相关chunk
-- 加分项：混合检索（向量+BM25）+ Rerank
+### 4. 语义对齐算法
+- **P0**: sentence-transformers (paraphrase-multilingual-MiniLM-L12-v2) + cosine similarity
+- **Threshold**: 0.90 (biomedical domain best practice)
+- **P1**: MinHash + BGE-M3 + SemHash multi-stage pipeline
 
-### 5. Agent架构
-- 需在`docs/Agent架构说明.md`中详细论证设计决策
-- 评分看合理性和论证深度，不看Agent数量
+### 5. 压缩策略 (Critical - Addresses Review Finding 2)
+- **P0**: Output real integrated content to `report/整合报告.md`
+- **Calculation**: (整合后字数 / 原始字数) × 100% ≤ 30%
+- **NOT**: Dynamic prompt compression (that's RAG optimization, not deliverable compression)
+
+### 6. RAG Pipeline
+- **P0**: FAISS vector-only retrieval (top-3)
+- **Embedding**: sentence-transformers (same as deduplication)
+- **Citations**: Manual tracking via chunk metadata (textbook, page, content)
+- **P1**: BM25 + vector hybrid + bge-reranker-v2-m3 + Judge Model verification
+
+### 7. 状态管理 (Addresses Review Finding 4)
+- **P0**: Filesystem-based job directories (`data/runtime/jobs/{job_id}/`)
+- **Rationale**: Zero dependencies, full traceability, easy debugging
+- **P1**: PostgreSQL/MongoDB for production
+
+### 8. Agent架构
+- **P0**: Sequential pipeline (single-agent)
+- **Rationale**: Time constraint + reliability > parallelism
+- **P1**: LangGraph state machine + multi-agent (CrewAI/AutoGen)
+- **Documentation**: Must explain design decisions in `docs/Agent架构说明.md` (20分关键)
 
 ## API Endpoints
 
@@ -138,19 +171,61 @@ GET  /api/report          # 获取整合报告
 
 ## Important Notes
 
-- **压缩比控制**：整合后内容≤原始总字数的30%
-- **RAG引用**：每个回答必须附带来源（教材名、章节、页码）
-- **Agent架构文档**：必须包含架构总览、设计决策论证、数据流、取舍权衡
-- **部署要求**：必须提供公网可访问的部署链接
-- **提交物**：GitHub仓库链接 + 在线部署链接
+- **P0 Demo Scope**: Single textbook (`03_生理学.pdf`) end-to-end pipeline
+- **压缩比控制**: 整合后内容≤原始总字数的30%，输出到 `report/整合报告.md`
+- **RAG引用**: 每个回答必须附带来源（教材名、章节、页码）
+- **Agent架构文档**: 必须包含架构总览、设计决策论证、数据流、取舍权衡（20分关键）
+- **状态持久化**: 所有中间结果保存到 `data/runtime/jobs/{job_id}/`
+- **部署要求**: P0使用uvicorn直接运行，P1考虑Docker
+- **提交物**: GitHub仓库链接 + 在线部署链接（如时间允许）
+
+## Execution Philosophy (Human-in-Progress Mode)
+
+### 三方约束
+1. **开发哲学** (`开发哲学.md`): 闭环优先、可见输出、知道什么不做
+2. **赛题要求**: 5小时、压缩≤30%、Agent架构20分
+3. **第三方Review**: P0范围收缩、真实压缩比、状态持久化、安全上传
+
+### 自驱动执行协议
+- **严格按plan执行**: `docs/mvp-p0-implementation-plan.md` Phases 0-9
+- **Checkpoint验证**: 每个Phase完成后必须通过验证命令
+- **系统性调试**: 遇到bug >10min使用systematic-debugging skill
+- **人工介入门槛**: 仅在blocked >15min、关键决策冲突、高风险操作时汇报
+- **过程性总结**: 每个Phase完成后更新 `docs/开发日志.md`
+
+### Multi-Agent协作
+- **并行机会**: Frontend可在Backend Phase 6-8时并行开发
+- **Review机会**: Phase 8完成后spawn review agent检查代码质量
+- **文档机会**: Phase 8-9时并行编写Agent架构说明.md
+
+### 验证标准
+- **Minimum Viable Demo**: Upload → Parse → Graph → Dedup → Report (压缩比≤30%) → RAG (带引用)
+- **文档完整性**: Agent架构说明.md + 开发日志.md + README.md
+- **可演示性**: 至少一个textbook完整流程可演示
 
 ## Time Allocation (5小时)
 
-- 前30分钟：搭建项目骨架
-- 第1-3小时：实现P0功能（优先级：文件解析→图谱构建→RAG→对话）
-- 第3-4小时：写文档（Agent架构说明 > 需求分析 > 整合报告 > README）
-- 第4-4.5小时：部署上线
-- 最后30分钟：检查提交、查缺补漏
+**优化后时间表** (基于三方约束):
+
+```
+00:00-00:05  Phase 0: 预检查
+00:05-00:20  Phase 1: 环境配置
+00:20-00:50  Phase 2: 文档解析 (30min)
+00:50-01:30  Phase 3: 知识图谱构建 (40min)
+01:30-02:00  Phase 4: 去重整合 (30min)
+02:00-02:25  Phase 5: 报告生成 (25min)
+02:25-03:05  Phase 6: RAG流水线 (40min)
+03:05-03:25  Phase 7: 可视化 (20min)
+03:25-04:00  Phase 8: API端点 (35min)
+04:00-04:20  Phase 9: 前端 (20min)
+04:20-04:30  端到端测试 (10min)
+---
+04:30-05:00  调试缓冲 (30min)
+```
+
+**关键路径**: Parse → Graph → Dedup → Report (压缩比证明) + RAG (引用证明) + 可演示界面
+
+**如果时间紧张**: 可砍Phase 7可视化（用JSON展示），可砍Phase 9前端（用curl演示API），但**绝不能砍**Report生成（压缩比是核心要求）
 
 ## Useful Commands
 
