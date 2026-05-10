@@ -547,13 +547,13 @@ export default function App() {
                     </div>
                   </motion.div>
 
-                  <button 
+                  <button
                     onClick={handleStartBuild}
-                    disabled={progress.status === 'processing' || isLoading}
+                    disabled={progress.status === 'processing' || isLoading || uploadedFiles.length > 0}
                     className="w-full h-16 bg-anthropic-ink hover:bg-anthropic-accent text-white rounded-2xl font-bold transition-all active:scale-[0.98] disabled:opacity-20 flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-[11px] shadow-xl shadow-anthropic-ink/10"
                   >
                     {progress.status === 'processing' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Network className="w-4 h-4 text-anthropic-accent" />}
-                    生成语义网格
+                    {uploadedFiles.length > 0 ? '已上传文件，请查看拓扑图' : '生成语义网格'}
                   </button>
                 </div>
               </section>
