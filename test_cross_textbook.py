@@ -104,11 +104,11 @@ def test_cross_textbook_integrator():
 
     print("\n1. Testing integrator initialization...")
     integrator = CrossTextbookIntegrator(similarity_threshold=0.90)
-    print("✓ Integrator initialized successfully")
+    print("[OK] Integrator initialized successfully")
 
     print("\n2. Testing knowledge graph alignment...")
     aligned_graph = integrator.align_knowledge_graphs([graph1, graph2])
-    print(f"✓ Aligned graph created")
+    print(f"[OK] Aligned graph created")
     print(f"  - Original nodes: {aligned_graph['metadata']['original_node_count']}")
     print(f"  - Merged nodes: {aligned_graph['metadata']['merged_node_count']}")
     print(f"  - Deduplication ratio: {aligned_graph['metadata']['deduplication_ratio']:.2f}")
@@ -118,17 +118,17 @@ def test_cross_textbook_integrator():
     cell_membrane_nodes = [n for n in aligned_graph['nodes'] if '细胞膜' in n.get('label', '')]
     if cell_membrane_nodes:
         node = cell_membrane_nodes[0]
-        print(f"✓ Found merged node: {node['label']}")
+        print(f"[OK] Found merged node: {node['label']}")
         print(f"  - Source count: {node.get('source_count', 0)}")
         print(f"  - Textbook count: {node.get('textbook_count', 0)}")
         if node.get('sources'):
             print(f"  - Sources: {[s['textbook_name'] for s in node['sources']]}")
     else:
-        print("✗ No merged nodes found for '细胞膜'")
+        print("[FAIL] No merged nodes found for '细胞膜'")
 
     print("\n4. Testing report generation...")
     report = integrator.generate_cross_textbook_report(aligned_graph, [graph1, graph2])
-    print(f"✓ Report generated ({len(report)} characters)")
+    print(f"[OK] Report generated ({len(report)} characters)")
     print("\nReport preview:")
     print("-" * 60)
     print(report[:500] + "...")
