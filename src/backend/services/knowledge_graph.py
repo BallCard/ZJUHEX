@@ -44,7 +44,7 @@ class KnowledgeGraphBuilder:
 
         Args:
             chunks: Parsed document chunks
-            max_chunks: Maximum chunks to process (P0: 10 for demo)
+            max_chunks: Maximum chunks to process (P0: 3 for small sample validation)
 
         Returns:
             Knowledge graph structure:

@@ -128,14 +128,20 @@ class KnowledgeIntegrator:
             clusters: Duplicate clusters
 
         Returns:
-            Merged nodes
+            Merged nodes with decision metadata
         """
         merged_nodes = []
 
         for cluster in clusters:
             if len(cluster) == 1:
                 # No duplicates, keep as-is
-                merged_nodes.append(nodes[cluster[0]])
+                node = nodes[cluster[0]].copy()
+                node["merge_decision"] = {
+                    "action": "keep",
+                    "reason": "No semantic duplicates found (similarity < 0.90)",
+                    "merged_count": 0
+                }
+                merged_nodes.append(node)
             else:
                 # Merge duplicates
                 representative = nodes[cluster[0]]
@@ -144,7 +150,13 @@ class KnowledgeIntegrator:
                     "label": representative["label"],
                     "type": representative["type"],
                     "definition": representative["definition"],
-                    "source_chunks": []
+                    "source_chunks": [],
+                    "merge_decision": {
+                        "action": "merge",
+                        "reason": f"Merged {len(cluster)} semantically similar nodes (similarity >= 0.90)",
+                        "merged_count": len(cluster) - 1,
+                        "merged_labels": [nodes[idx]["label"] for idx in cluster[1:]]
+                    }
                 }
 
                 # Collect all source chunks from duplicates

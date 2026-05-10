@@ -12,6 +12,11 @@ P0 Scope:
 from typing import Dict, Any, List
 from pathlib import Path
 from datetime import datetime
+import sys
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from utils.paths import REPORT_DIR
 
 
 class ReportGenerator:
@@ -22,7 +27,8 @@ class ReportGenerator:
         original_chunks: List[Dict[str, Any]],
         original_graph: Dict[str, Any],
         deduplicated_graph: Dict[str, Any],
-        job_id: str
+        job_id: str,
+        chapter_info: Dict[str, Any] = None
     ) -> str:
         """
         Generate integration report.
@@ -32,6 +38,7 @@ class ReportGenerator:
             original_graph: Original knowledge graph before deduplication
             deduplicated_graph: Deduplicated knowledge graph
             job_id: Job identifier
+            chapter_info: Chapter metadata (title, page range, chunk count)
 
         Returns:
             Path to generated report file
@@ -44,12 +51,11 @@ class ReportGenerator:
         )
 
         # Generate report content
-        report_content = self._format_report(stats, deduplicated_graph, job_id)
+        report_content = self._format_report(stats, deduplicated_graph, job_id, chapter_info)
 
-        # Save report
-        report_dir = Path("report")
-        report_dir.mkdir(exist_ok=True)
-        report_path = report_dir / f"整合报告_{job_id}.md"
+        # Save report (uses absolute path)
+        REPORT_DIR.mkdir(parents=True, exist_ok=True)
+        report_path = REPORT_DIR / f"整合报告_{job_id}.md"
 
         with open(report_path, 'w', encoding='utf-8') as f:
             f.write(report_content)
@@ -62,25 +68,26 @@ class ReportGenerator:
         original_graph: Dict[str, Any],
         deduplicated_graph: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """Calculate report statistics."""
-        # Original content size
-        original_chars = sum(chunk["char_count"] for chunk in original_chunks)
+        """Calculate report statistics with consistent compression ratio."""
+        # Original content size (actual content length, not char_count metadata)
+        original_chars = sum(len(chunk.get("content", "")) for chunk in original_chunks)
 
-        # Deduplicated content size (sum of unique node definitions)
-        deduplicated_chars = sum(
-            len(node.get("definition", "")) + len(node["label"])
+        # Integrated content (formatted as final output)
+        integrated_content = "\n\n".join([
+            f"**{node['label']}**\n{node.get('definition', '')}"
             for node in deduplicated_graph["nodes"]
-        )
+        ])
+        integrated_chars = len(integrated_content)
 
-        # Compression ratio
-        compression_ratio = (deduplicated_chars / original_chars * 100) if original_chars > 0 else 0
+        # Compression ratio (consistent denominator and numerator)
+        compression_ratio = (integrated_chars / original_chars * 100) if original_chars > 0 else 0
 
         return {
             "original_chars": original_chars,
             "original_chunks": len(original_chunks),
             "original_nodes": len(original_graph["nodes"]),
             "original_edges": len(original_graph["edges"]),
-            "deduplicated_chars": deduplicated_chars,
+            "integrated_chars": integrated_chars,
             "deduplicated_nodes": len(deduplicated_graph["nodes"]),
             "deduplicated_edges": len(deduplicated_graph["edges"]),
             "compression_ratio": compression_ratio,
@@ -92,10 +99,27 @@ class ReportGenerator:
         self,
         stats: Dict[str, Any],
         deduplicated_graph: Dict[str, Any],
-        job_id: str
+        job_id: str,
+        chapter_info: Dict[str, Any] = None
     ) -> str:
         """Format report as markdown."""
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        # Format chapter info section
+        chapter_section = ""
+        if chapter_info:
+            textbook_name = chapter_info.get('textbook', '未知教材')
+            chapter_section = f"""
+## 处理范围
+
+- **教材**: {textbook_name}
+- **章节**: {chapter_info.get('title', '未知章节')}
+- **页码范围**: 第 {chapter_info.get('start_page', 0)} - {chapter_info.get('end_page', 0)} 页
+- **文档块数**: {chapter_info.get('chunk_count', 0)} 个
+- **实际处理**: {chapter_info.get('processed_chunks', 0)} 个文档块
+
+---
+"""
 
         report = f"""# 知识整合报告
 
@@ -103,13 +127,13 @@ class ReportGenerator:
 **任务ID**: {job_id}
 
 ---
-
+{chapter_section}
 ## 1. 压缩比统计
 
 | 指标 | 数值 |
 |------|------|
 | 原始字符数 | {stats['original_chars']:,} |
-| 整合后字符数 | {stats['deduplicated_chars']:,} |
+| 整合后字符数 | {stats['integrated_chars']:,} |
 | **压缩比** | **{stats['compression_ratio']:.2f}%** |
 | 目标压缩比 | ≤30% |
 | **是否达标** | **{'✓ 是' if stats['compression_ratio'] <= 30 else '✗ 否'}** |
@@ -143,6 +167,10 @@ class ReportGenerator:
 1. **保留教学完整性**: 合并重复概念，但保留所有来源引用
 2. **关系去重**: 移除因节点合并产生的自环和重复边
 3. **语义对齐**: 基于标签+定义的语义匹配，而非简单字符串匹配
+
+### 决策样例
+
+{self._format_decision_examples(deduplicated_graph)}
 
 ---
 
@@ -252,12 +280,56 @@ class ReportGenerator:
                 return node["label"]
         return node_id
 
+    def _format_decision_examples(self, deduplicated_graph: Dict[str, Any]) -> str:
+        """Format decision examples (keep/merge/delete)."""
+        nodes = deduplicated_graph["nodes"]
+
+        # Separate nodes by decision type
+        keep_nodes = [n for n in nodes if n.get("merge_decision", {}).get("action") == "keep"]
+        merge_nodes = [n for n in nodes if n.get("merge_decision", {}).get("action") == "merge"]
+
+        examples = ""
+
+        # Keep decisions
+        examples += "#### 保留决策\n\n"
+        if keep_nodes:
+            for node in keep_nodes[:3]:  # Show up to 3 examples
+                decision = node.get("merge_decision", {})
+                examples += f"**{node['label']}**\n"
+                examples += f"- 决策: 保留\n"
+                examples += f"- 理由: {decision.get('reason', '未记录')}\n"
+                examples += f"- 来源: {', '.join(node.get('source_chunks', []))}\n\n"
+        else:
+            examples += "(无保留决策样例)\n\n"
+
+        # Merge decisions
+        examples += "#### 合并决策\n\n"
+        if merge_nodes:
+            for node in merge_nodes[:3]:  # Show up to 3 examples
+                decision = node.get("merge_decision", {})
+                examples += f"**{node['label']}**\n"
+                examples += f"- 决策: 合并\n"
+                examples += f"- 理由: {decision.get('reason', '未记录')}\n"
+                examples += f"- 合并数量: {decision.get('merged_count', 0)} 个节点\n"
+                if decision.get('merged_labels'):
+                    examples += f"- 被合并节点: {', '.join(decision['merged_labels'])}\n"
+                examples += f"- 来源: {', '.join(node.get('source_chunks', []))}\n\n"
+        else:
+            examples += "(无合并决策样例 - 可能是因为文档块数量较少，未发现语义重复)\n\n"
+
+        # Delete decisions (P0 scope: no explicit deletion, only merging)
+        examples += "#### 删除决策\n\n"
+        examples += "(P0范围内不执行显式删除，仅通过合并去重)\n"
+
+        return examples
+
 
 def generate_integration_report(
     original_chunks: List[Dict[str, Any]],
     original_graph: Dict[str, Any],
     deduplicated_graph: Dict[str, Any],
-    job_id: str
+    job_id: str,
+    chapter_info: Dict[str, Any] = None
 ) -> str:
     """
     Convenience function to generate integration report.
@@ -267,6 +339,7 @@ def generate_integration_report(
         original_graph: Original knowledge graph
         deduplicated_graph: Deduplicated knowledge graph
         job_id: Job identifier
+        chapter_info: Chapter metadata (title, page range, chunk count)
 
     Returns:
         Path to generated report file
@@ -276,5 +349,6 @@ def generate_integration_report(
         original_chunks,
         original_graph,
         deduplicated_graph,
-        job_id
+        job_id,
+        chapter_info
     )
