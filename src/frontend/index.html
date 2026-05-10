@@ -113,8 +113,12 @@
             color: #d32f2f;
         }
 
-        .progress {
-            margin: 20px 0;
+        .progress-text {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
         }
 
         .progress-bar {
@@ -191,10 +195,17 @@
 
         .citation {
             background: #f8f9fa;
-            padding: 10px;
-            border-left: 3px solid #667eea;
+            padding: 15px;
+            border-left: 4px solid #667eea;
             margin: 10px 0;
             font-size: 14px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .citation:hover {
+            background: #e8eaf6;
+            border-left-color: #764ba2;
         }
 
         .loading {
@@ -236,6 +247,7 @@
                 <div class="progress-bar">
                     <div class="progress-fill" id="progressFill" style="width: 0%"></div>
                 </div>
+                <div class="progress-text" id="progressText">等待开始...</div>
             </div>
             <div id="pipelineStatus"></div>
             <button class="btn" id="runPipelineBtn" onclick="runPipeline()" disabled>运行整合流水线</button>
@@ -320,51 +332,96 @@
             if (!currentJobId) return;
 
             document.getElementById('runPipelineBtn').disabled = true;
+            showStatus('pipelineStatus', '启动流水线... <span class="loading"></span>', 'info');
+            document.getElementById('progressText').textContent = '准备中...';
+
             const phases = [
-                { name: 'parse', label: '解析文档', progress: 20 },
-                { name: 'build_graph', label: '构建知识图谱', progress: 40 },
-                { name: 'integrate', label: '去重整合', progress: 60 },
-                { name: 'generate_report', label: '生成报告', progress: 80 },
-                { name: 'rag_index', label: '建立RAG索引', progress: 100 }
+                { name: 'parse', label: '解析文档', endpoint: `/api/parse/${currentJobId}` },
+                { name: 'build_graph', label: '构建知识图谱', endpoint: `/api/build_graph/${currentJobId}` },
+                { name: 'integrate', label: '去重整合', endpoint: `/api/integrate/${currentJobId}` },
+                { name: 'generate_report', label: '生成报告', endpoint: `/api/generate_report/${currentJobId}` },
+                { name: 'rag_index', label: '建立RAG索引', endpoint: `/api/rag/index/${currentJobId}` }
             ];
 
-            for (const phase of phases) {
+            for (let i = 0; i < phases.length; i++) {
+                const phase = phases[i];
+                const progressPercent = ((i + 1) / phases.length * 100);
+
                 showStatus('pipelineStatus', `${phase.label}中... <span class="loading"></span>`, 'info');
-                document.getElementById('progressFill').style.width = `${phase.progress}%`;
+                document.getElementById('progressText').textContent = `${phase.label} (${i + 1}/${phases.length})`;
+                document.getElementById('progressFill').style.width = `${progressPercent}%`;
 
                 try {
-                    let endpoint;
-                    if (phase.name === 'rag_index') {
-                        endpoint = `${API_BASE}/api/rag/index/${currentJobId}`;
-                    } else if (phase.name === 'generate_report') {
-                        endpoint = `${API_BASE}/api/${phase.name}/${currentJobId}`;
-                    } else {
-                        endpoint = `${API_BASE}/api/${phase.name}/${currentJobId}`;
-                    }
+                    // For build_graph phase, start polling progress
+                    if (phase.name === 'build_graph') {
+                        const response = await fetch(`${API_BASE}${phase.endpoint}`, { method: 'POST' });
+                        const data = await response.json();
 
-                    const response = await fetch(endpoint, { method: 'POST' });
-                    const data = await response.json();
+                        if (!response.ok) {
+                            throw new Error(data.detail || `HTTP ${response.status}`);
+                        }
+
+                        // Start polling for build_graph progress
+                        await new Promise((resolve, reject) => {
+                            const pollInterval = setInterval(async () => {
+                                try {
+                                    const progressResp = await fetch(`${API_BASE}/api/jobs/${currentJobId}/progress`);
+                                    const progressData = await progressResp.json();
+
+                                    // Update progress display
+                                    if (progressData.progress && progressData.total) {
+                                        document.getElementById('progressText').textContent =
+                                            `${phase.label} (${progressData.progress}/${progressData.total})`;
+                                    }
+
+                                    if (progressData.status === 'graph_built') {
+                                        clearInterval(pollInterval);
+                                        if (progressData.extraction_stats) {
+                                            document.getElementById('nodesCount').textContent =
+                                                progressData.extraction_stats.success || 0;
+                                        }
+                                        resolve();
+                                    } else if (progressData.status === 'failed') {
+                                        clearInterval(pollInterval);
+                                        reject(new Error(progressData.error || '知识图谱构建失败'));
+                                    }
+                                } catch (err) {
+                                    clearInterval(pollInterval);
+                                    reject(err);
+                                }
+                            }, 2000);
+                        });
+                    } else {
+                        // For other phases, simple POST request
+                        const response = await fetch(`${API_BASE}${phase.endpoint}`, { method: 'POST' });
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.detail || `HTTP ${response.status}`);
+                        }
+
+                        // Update stats based on phase
+                        if (phase.name === 'parse' && data.total_chars) {
+                            document.getElementById('originalChars').textContent = data.total_chars.toLocaleString();
+                        } else if (phase.name === 'generate_report' && data.compression_ratio) {
+                            document.getElementById('compressionRatio').textContent = `${data.compression_ratio.toFixed(2)}%`;
+                            document.getElementById('viewReportBtn').disabled = false;
+                        }
+                    }
 
                     showStatus('pipelineStatus', `${phase.label}完成`, 'success');
-
-                    // Update stats
-                    if (phase.name === 'parse') {
-                        document.getElementById('originalChars').textContent = data.total_chars.toLocaleString();
-                    } else if (phase.name === 'build_graph') {
-                        document.getElementById('nodesCount').textContent = data.nodes_count;
-                    } else if (phase.name === 'generate_report') {
-                        document.getElementById('compressionRatio').textContent = `${data.compression_ratio.toFixed(2)}%`;
-                        document.getElementById('viewReportBtn').disabled = false;
-                    }
-
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    await new Promise(resolve => setTimeout(resolve, 300));
                 } catch (error) {
                     showStatus('pipelineStatus', `${phase.label}失败: ${error.message}`, 'error');
+                    document.getElementById('progressText').textContent = '失败';
+                    document.getElementById('runPipelineBtn').disabled = false;
                     return;
                 }
             }
 
             showStatus('pipelineStatus', '整合流水线完成！', 'success');
+            document.getElementById('progressText').textContent = '完成';
+            document.getElementById('progressFill').style.width = '100%';
             document.getElementById('ragQuestion').disabled = false;
             document.getElementById('ragQueryBtn').disabled = false;
         }
@@ -400,16 +457,25 @@
 
                 const data = await response.json();
 
-                let html = `<h3>问题：${data.question}</h3>`;
-                html += `<p style="margin: 15px 0;"><strong>回答：</strong>${data.answer}</p>`;
-                html += `<h4 style="margin-top: 20px;">引用来源：</h4>`;
+                let html = `<h3 style="color: #333; margin-bottom: 15px;">问题：${data.question}</h3>`;
+                html += `<div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin: 15px 0; line-height: 1.8;">`;
+                html += `<strong style="color: #667eea;">回答：</strong><br>${data.answer.replace(/\n/g, '<br>')}`;
+                html += `</div>`;
 
-                data.citations.forEach((citation, i) => {
-                    html += `<div class="citation">
-                        <strong>[${i + 1}] ${citation.textbook} - 第${citation.page}页</strong><br>
-                        ${citation.content}
-                    </div>`;
-                });
+                if (data.citations && data.citations.length > 0) {
+                    html += `<h4 style="margin-top: 20px; color: #667eea;">引用来源：</h4>`;
+                    data.citations.forEach((citation, i) => {
+                        html += `<div class="citation">
+                            <strong style="color: #764ba2;">[${i + 1}] ${citation.textbook}</strong>
+                            <span style="color: #666;"> - 第${citation.page}页</span><br>
+                            <div style="margin-top: 8px; color: #555; font-style: italic;">
+                                "${citation.content.substring(0, 200)}${citation.content.length > 200 ? '...' : ''}"
+                            </div>
+                        </div>`;
+                    });
+                } else {
+                    html += `<p style="color: #999; margin-top: 15px;">无引用来源</p>`;
+                }
 
                 document.getElementById('ragAnswer').innerHTML = html;
             } catch (error) {

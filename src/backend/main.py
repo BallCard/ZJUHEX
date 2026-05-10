@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import List, Optional
 from datetime import datetime
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -24,10 +24,18 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent))
 
 from services.parser import parse_textbook
-from services.knowledge_graph import build_knowledge_graph
+from services.knowledge_graph import build_knowledge_graph, KnowledgeGraphBuilder
 from services.integration import deduplicate_knowledge_graph
 from services.report_generator import generate_integration_report
 from services.rag import RAGPipeline
+from services.content_detector import ContentDetector
+from services.async_extractor import AsyncExtractor
+
+# Import unified paths
+from utils.paths import get_job_dir, REPORT_DIR, ensure_directories
+
+# Ensure all directories exist
+ensure_directories()
 
 
 # Initialize FastAPI app
@@ -68,11 +76,6 @@ class RAGResponse(BaseModel):
 
 
 # Helper functions
-def get_job_dir(job_id: str) -> Path:
-    """Get job directory path."""
-    return Path(f"data/runtime/jobs/{job_id}")
-
-
 def save_job_state(job_id: str, state: dict):
     """Save job state to filesystem."""
     job_dir = get_job_dir(job_id)
@@ -83,9 +86,39 @@ def save_job_state(job_id: str, state: dict):
         json.dump(state, f, ensure_ascii=False, indent=2)
 
 
+def update_job_state(job_id: str, updates: dict):
+    """
+    Update job state with incremental changes (merge, not overwrite).
+
+    Args:
+        job_id: Job identifier
+        updates: Dictionary of fields to update
+    """
+    job_dir = get_job_dir(job_id)
+    job_dir.mkdir(parents=True, exist_ok=True)
+
+    state_path = job_dir / "state.json"
+
+    # Load existing state
+    if state_path.exists():
+        with open(state_path, 'r', encoding='utf-8') as f:
+            state = json.load(f)
+    else:
+        state = {}
+
+    # Merge updates
+    state.update(updates)
+    state["updated_at"] = datetime.now().isoformat()
+
+    # Save state
+    with open(state_path, 'w', encoding='utf-8') as f:
+        json.dump(state, f, ensure_ascii=False, indent=2)
+
+
 def load_job_state(job_id: str) -> dict:
     """Load job state from filesystem."""
-    state_path = get_job_dir(job_id) / "state.json"
+    job_dir = get_job_dir(job_id)
+    state_path = job_dir / "state.json"
     if not state_path.exists():
         raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
 
@@ -121,8 +154,9 @@ async def upload_textbook(file: UploadFile = File(...)):
     job_dir = get_job_dir(job_id)
     job_dir.mkdir(parents=True, exist_ok=True)
 
-    # Save uploaded file
-    file_path = job_dir / file.filename
+    # Save uploaded file (sanitize filename to prevent path traversal)
+    safe_filename = Path(file.filename).name  # Only take filename, remove path components
+    file_path = job_dir / safe_filename
     with open(file_path, 'wb') as f:
         content = await file.read()
         f.write(content)
@@ -186,46 +220,159 @@ def parse_document(job_id: str):
     }
 
 
-@app.post("/api/build_graph/{job_id}")
-def build_graph(job_id: str, max_chunks: int = 3):
+def build_graph_task(job_id: str, max_chunks: int = None, chapter_num: int = 1):
     """
-    Build knowledge graph from parsed chunks.
+    Background task to build knowledge graph.
 
     Args:
         job_id: Job identifier
-        max_chunks: Maximum chunks to process (P0: 3 for small sample validation)
+        max_chunks: Maximum chunks to process (P0 legacy: for testing)
+        chapter_num: Chapter number to process (P1: default=1)
+    """
+    try:
+        # Update status to processing
+        update_job_state(job_id, {
+            "status": "processing",
+            "current_phase": "build_graph",
+            "extraction_progress": 0,
+            "extraction_total": 0
+        })
+
+        # Load chunks
+        chunks_path = get_job_dir(job_id) / "parsed_chunks.json"
+        with open(chunks_path, 'r', encoding='utf-8') as f:
+            chunks = json.load(f)
+
+        # P1: Use ContentDetector to select chapter
+        detector = ContentDetector()
+
+        # Detect content start (skip cover/preface/TOC)
+        content_start_idx = detector.detect_content_start(chunks)
+        content_chunks = chunks[content_start_idx:]
+
+        # Select complete chapter
+        chapter_chunks = detector.select_chapter(content_chunks, chapter_num=chapter_num)
+
+        # Get chapter metadata
+        chapter_metadata = detector.get_chapter_metadata(chapter_chunks)
+
+        # P0 backward compatibility: if max_chunks specified, limit chunks
+        if max_chunks is not None:
+            processing_chunks = chapter_chunks[:max_chunks]
+        else:
+            processing_chunks = chapter_chunks
+
+        # Use AsyncExtractor for batch extraction with caching
+        extractor = AsyncExtractor(job_id)
+        extraction_results = extractor.extract_batch(processing_chunks)
+
+        # Build graph from extraction results
+        nodes = []
+        edges = []
+        node_id_counter = 0
+
+        for result in extraction_results["results"]:
+            if result.get("status") != "success":
+                continue
+
+            chunk_id = result["chunk_id"]
+
+            # Add nodes
+            for concept in result.get("concepts", []):
+                nodes.append({
+                    "id": f"node_{node_id_counter}",
+                    "label": concept["name"],
+                    "type": concept.get("type", "concept"),
+                    "definition": concept.get("definition", ""),
+                    "source_chunks": [chunk_id]
+                })
+                node_id_counter += 1
+
+            # Add edges (relationships)
+            for relation in result.get("relationships", []):
+                # Find node IDs by label
+                source_node = next((n for n in nodes if n["label"] == relation["source"]), None)
+                target_node = next((n for n in nodes if n["label"] == relation["target"]), None)
+
+                if source_node and target_node:
+                    edges.append({
+                        "source": source_node["id"],
+                        "target": target_node["id"],
+                        "relation": relation["type"],
+                        "description": relation.get("description", "")
+                    })
+
+        # Build final graph structure
+        graph = {
+            "nodes": nodes,
+            "edges": edges,
+            "metadata": {
+                "total_nodes": len(nodes),
+                "total_edges": len(edges),
+                "chunks_processed": extraction_results["success_count"],
+                "chunks_failed": extraction_results["failed_count"],
+                "chunks_cached": extraction_results["cached_count"]
+            }
+        }
+
+        # Save graph
+        graph_path = get_job_dir(job_id) / "knowledge_graph.json"
+        with open(graph_path, 'w', encoding='utf-8') as f:
+            json.dump(graph, f, ensure_ascii=False, indent=2)
+
+        # Update state with success
+        update_job_state(job_id, {
+            "status": "graph_built",
+            "current_phase": "build_graph",
+            "nodes_count": graph["metadata"]["total_nodes"],
+            "edges_count": graph["metadata"]["total_edges"],
+            "content_start_page": content_chunks[0]["page"] if content_chunks else 0,
+            "chapter_title": chapter_metadata["chapter_title"],
+            "chapter_start_page": chapter_metadata["start_page"],
+            "chapter_end_page": chapter_metadata["end_page"],
+            "chapter_chunk_count": chapter_metadata["chunk_count"],
+            "processed_chunk_count": len(processing_chunks),
+            "extraction_success": extraction_results["success_count"],
+            "extraction_failed": extraction_results["failed_count"],
+            "extraction_cached": extraction_results["cached_count"]
+        })
+
+    except Exception as e:
+        # Update state with error
+        update_job_state(job_id, {
+            "status": "failed",
+            "current_phase": "build_graph",
+            "error": str(e)
+        })
+        print(f"[ERROR] build_graph_task failed for job {job_id}: {e}")
+
+
+@app.post("/api/build_graph/{job_id}")
+async def build_graph(job_id: str, background_tasks: BackgroundTasks, max_chunks: int = None, chapter_num: int = 1):
+    """
+    Build knowledge graph from parsed chunks (async with background task).
+
+    Args:
+        job_id: Job identifier
+        background_tasks: FastAPI background tasks
+        max_chunks: Maximum chunks to process (P0 legacy: for testing, overrides chapter selection)
+        chapter_num: Chapter number to process (P1: default=1, processes complete chapter)
 
     Returns:
-        nodes_count: Number of nodes
-        edges_count: Number of edges
+        status: "processing"
+        job_id: Job identifier
+        message: Status message
     """
-    # Load chunks
-    chunks_path = get_job_dir(job_id) / "parsed_chunks.json"
-    with open(chunks_path, 'r', encoding='utf-8') as f:
-        chunks = json.load(f)
+    # Verify job exists
+    load_job_state(job_id)
 
-    # Build graph
-    graph = build_knowledge_graph(chunks, max_chunks)
-
-    # Save graph
-    graph_path = get_job_dir(job_id) / "knowledge_graph.json"
-    with open(graph_path, 'w', encoding='utf-8') as f:
-        json.dump(graph, f, ensure_ascii=False, indent=2)
-
-    # Update state
-    state = load_job_state(job_id)
-    state["status"] = "graph_built"
-    state["current_phase"] = "build_graph"
-    state["nodes_count"] = graph["metadata"]["total_nodes"]
-    state["edges_count"] = graph["metadata"]["total_edges"]
-    state["updated_at"] = datetime.now().isoformat()
-    save_job_state(job_id, state)
+    # Add background task
+    background_tasks.add_task(build_graph_task, job_id, max_chunks, chapter_num)
 
     return {
+        "status": "processing",
         "job_id": job_id,
-        "nodes_count": graph["metadata"]["total_nodes"],
-        "edges_count": graph["metadata"]["total_edges"],
-        "message": "Knowledge graph built successfully"
+        "message": "Knowledge graph construction started. Use /api/jobs/{job_id}/progress to check progress."
     }
 
 
@@ -298,11 +445,22 @@ def generate_report(job_id: str):
     with open(dedup_path, 'r', encoding='utf-8') as f:
         deduplicated = json.load(f)
 
-    # Generate report
-    report_path = generate_integration_report(chunks, graph, deduplicated, job_id)
+    # Load state to get chapter info
+    state = load_job_state(job_id)
+    chapter_info = {
+        "textbook": state.get("filename", "未知教材"),
+        "title": state.get("chapter_title", "未知章节"),
+        "start_page": state.get("chapter_start_page", 0),
+        "end_page": state.get("chapter_end_page", 0),
+        "chunk_count": state.get("chapter_chunk_count", 0),
+        "processed_chunks": state.get("processed_chunk_count", 0)
+    }
 
-    # Calculate compression ratio
-    original_chars = sum(c["char_count"] for c in chunks)
+    # Generate report
+    report_path = generate_integration_report(chunks, graph, deduplicated, job_id, chapter_info)
+
+    # Calculate compression ratio (use actual content length for consistency with report)
+    original_chars = sum(len(c.get("content", "")) for c in chunks)
     deduplicated_chars = sum(
         len(node.get("definition", "")) + len(node["label"])
         for node in deduplicated["nodes"]
@@ -310,7 +468,6 @@ def generate_report(job_id: str):
     compression_ratio = (deduplicated_chars / original_chars * 100) if original_chars > 0 else 0
 
     # Update state
-    state = load_job_state(job_id)
     state["status"] = "report_generated"
     state["current_phase"] = "generate_report"
     state["report_path"] = report_path
@@ -323,6 +480,7 @@ def generate_report(job_id: str):
         "report_path": report_path,
         "compression_ratio": compression_ratio,
         "meets_target": compression_ratio <= 30,
+        "chapter_info": chapter_info,
         "message": "Report generated successfully"
     }
 
@@ -386,6 +544,51 @@ def query_rag(job_id: str, query: RAGQuery):
     return RAGResponse(**result)
 
 
+@app.get("/api/jobs/{job_id}/progress")
+def get_progress(job_id: str):
+    """
+    Get job progress (for async tasks like build_graph).
+
+    Args:
+        job_id: Job identifier
+
+    Returns:
+        status: Current status (processing/graph_built/failed)
+        progress: Current progress count
+        total: Total items to process
+        percentage: Progress percentage
+        error: Error message (if failed)
+    """
+    state = load_job_state(job_id)
+
+    progress = state.get("extraction_progress", 0)
+    total = state.get("extraction_total", 0)
+    percentage = (progress / total * 100) if total > 0 else 0
+
+    response = {
+        "job_id": job_id,
+        "status": state.get("status"),
+        "current_phase": state.get("current_phase"),
+        "progress": progress,
+        "total": total,
+        "percentage": round(percentage, 1)
+    }
+
+    # Add error if failed
+    if state.get("status") == "failed":
+        response["error"] = state.get("error", "Unknown error")
+
+    # Add extraction stats if available
+    if state.get("status") == "graph_built":
+        response["extraction_stats"] = {
+            "success": state.get("extraction_success", 0),
+            "failed": state.get("extraction_failed", 0),
+            "cached": state.get("extraction_cached", 0)
+        }
+
+    return response
+
+
 @app.get("/api/status/{job_id}", response_model=JobStatus)
 def get_job_status(job_id: str):
     """
@@ -419,7 +622,7 @@ def get_report(job_id: str):
     Returns:
         Report content as text
     """
-    report_path = Path(f"report/整合报告_{job_id}.md")
+    report_path = REPORT_DIR / f"整合报告_{job_id}.md"
 
     if not report_path.exists():
         raise HTTPException(status_code=404, detail="Report not found")

@@ -18,6 +18,11 @@ import faiss
 from sentence_transformers import SentenceTransformer
 from openai import OpenAI
 from dotenv import load_dotenv
+import sys
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from utils.paths import get_job_dir
 
 load_dotenv()
 
@@ -93,8 +98,8 @@ class RAGPipeline:
         if self.index is None or self.chunks is None:
             raise ValueError("Index not built yet")
 
-        # Create job directory
-        job_dir = Path(f"data/runtime/jobs/{job_id}")
+        # Get job directory (uses absolute path)
+        job_dir = get_job_dir(job_id)
         job_dir.mkdir(parents=True, exist_ok=True)
 
         # Save FAISS index
@@ -115,7 +120,8 @@ class RAGPipeline:
         Args:
             job_id: Job identifier
         """
-        job_dir = Path(f"data/runtime/jobs/{job_id}")
+        # Get job directory (uses absolute path)
+        job_dir = get_job_dir(job_id)
 
         # Load FAISS index
         index_path = job_dir / "faiss.index"
