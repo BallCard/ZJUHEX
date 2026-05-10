@@ -134,6 +134,120 @@ def test_rag_query(job_id):
         print(f"[ERROR] RAG query failed: {response.status_code} - {response.text}")
         return False
 
+def test_upload():
+    """Test file upload."""
+    pdf_path = Path("data/textbooks/03_生理学.pdf")
+
+    if not pdf_path.exists():
+        print(f"[ERROR] PDF not found: {pdf_path}")
+        return None
+
+    print(f"\n[INFO] Uploading {pdf_path.name}...")
+
+    with open(pdf_path, 'rb') as f:
+        files = {'file': (pdf_path.name, f, 'application/pdf')}
+        response = requests.post(f"{API_BASE}/api/upload", files=files, timeout=30)
+
+    if response.status_code == 200:
+        data = response.json()
+        print(f"[OK] Upload successful, job_id: {data['job_id']}")
+        return data['job_id']
+    else:
+        print(f"[ERROR] Upload failed: {response.status_code} - {response.text}")
+        return None
+
+def test_parse(job_id):
+    """Test document parsing."""
+    print(f"\n[INFO] Parsing document...")
+    response = requests.post(f"{API_BASE}/api/parse/{job_id}", timeout=60)
+
+    if response.status_code == 200:
+        data = response.json()
+        print(f"[OK] Parsed {data['chunks_count']} chunks, {data['total_chars']} chars")
+        return True
+    else:
+        print(f"[ERROR] Parse failed: {response.status_code} - {response.text}")
+        return False
+
+def test_build_graph(job_id):
+    """Test knowledge graph construction."""
+    print(f"\n[INFO] Building knowledge graph (max 3 chunks)...")
+    response = requests.post(f"{API_BASE}/api/build_graph/{job_id}?max_chunks=3", timeout=120)
+
+    if response.status_code == 200:
+        data = response.json()
+        print(f"[OK] Built graph with {data['nodes_count']} nodes, {data['edges_count']} edges")
+        return True
+    else:
+        print(f"[ERROR] Build graph failed: {response.status_code} - {response.text}")
+        return False
+
+def test_integrate(job_id):
+    """Test deduplication."""
+    print(f"\n[INFO] Deduplicating knowledge graph...")
+    response = requests.post(f"{API_BASE}/api/integrate/{job_id}", timeout=120)
+
+    if response.status_code == 200:
+        data = response.json()
+        print(f"[OK] Deduplicated: {data['original_nodes']} -> {data['deduplicated_nodes']} nodes")
+        print(f"    Deduplication ratio: {data['deduplication_ratio']:.2f}")
+        return True
+    else:
+        print(f"[ERROR] Integration failed: {response.status_code} - {response.text}")
+        return False
+
+def test_generate_report(job_id):
+    """Test report generation."""
+    print(f"\n[INFO] Generating integration report...")
+    response = requests.post(f"{API_BASE}/api/generate_report/{job_id}", timeout=60)
+
+    if response.status_code == 200:
+        data = response.json()
+        print(f"[OK] Report generated: {data['report_path']}")
+        print(f"    Compression ratio: {data['compression_ratio']:.2f}%")
+        print(f"    Meets target (<=30%): {data['meets_target']}")
+        return True
+    else:
+        print(f"[ERROR] Report generation failed: {response.status_code} - {response.text}")
+        return False
+
+def test_rag_index(job_id):
+    """Test RAG index building."""
+    print(f"\n[INFO] Building RAG index...")
+    response = requests.post(f"{API_BASE}/api/rag/index/{job_id}", timeout=120)
+
+    if response.status_code == 200:
+        data = response.json()
+        print(f"[OK] RAG index built with {data['vectors_count']} vectors")
+        return True
+    else:
+        print(f"[ERROR] RAG index failed: {response.status_code} - {response.text}")
+        return False
+
+def test_rag_query(job_id):
+    """Test RAG query."""
+    question = "细胞膜的结构是什么？"
+    print(f"\n[INFO] Testing RAG query: {question}")
+
+    response = requests.post(
+        f"{API_BASE}/api/rag/query/{job_id}",
+        json={"question": question, "top_k": 3},
+        timeout=60
+    )
+
+    if response.status_code == 200:
+        data = response.json()
+        print(f"[OK] RAG query successful")
+        print(f"    Question: {data['question']}")
+        print(f"    Answer: {data['answer'][:100]}...")
+        print(f"    Citations: {len(data['citations'])} sources")
+        for i, citation in enumerate(data['citations'], 1):
+            print(f"      [{i}] {citation['textbook']} p{citation['page']}")
+        return True
+    else:
+        print(f"[ERROR] RAG query failed: {response.status_code} - {response.text}")
+        return False
+
 def test_upload_multiple():
     """Test multiple file upload for cross-textbook integration."""
     pdf_paths = [
