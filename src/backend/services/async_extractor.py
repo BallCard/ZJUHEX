@@ -12,9 +12,15 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 from filelock import FileLock, Timeout
+import sys
 
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
 from services.knowledge_graph import KnowledgeGraphBuilder
 from utils.paths import RUNTIME_DIR
+from utils.logger import setup_logger
+
+logger = setup_logger(__name__)
 
 
 class AsyncExtractor:
@@ -30,6 +36,8 @@ class AsyncExtractor:
         self.job_id = job_id
         self.cache_dir = RUNTIME_DIR / job_id / "extraction_cache"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
+
+        logger.info(f"AsyncExtractor initialized for job {job_id}")
 
         # Initialize LLM builder (reuse existing logic)
         self.builder = KnowledgeGraphBuilder()
@@ -61,9 +69,10 @@ class AsyncExtractor:
                 with open(cache_file, 'r', encoding='utf-8') as f:
                     cached_result = json.load(f)
                     cached_result["cached"] = True
+                    logger.debug(f"Cache hit for {chunk_id}")
                     return cached_result
             except Exception as e:
-                print(f"[WARN] Cache read failed for {chunk_id}: {e}")
+                logger.warning(f"Cache read failed for {chunk_id}: {e}")
                 # Continue to re-extract
 
         # Extract using LLM (reuse knowledge_graph logic)
@@ -101,7 +110,7 @@ class AsyncExtractor:
             with open(cache_file, 'w', encoding='utf-8') as f:
                 json.dump(error_result, f, ensure_ascii=False, indent=2)
 
-            print(f"[ERROR] Extraction failed for {chunk_id}: {e}")
+            logger.error(f"Extraction failed for {chunk_id}: {e}")
             return None
 
     def extract_batch(self, chunks: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -125,6 +134,8 @@ class AsyncExtractor:
         failed_count = 0
         cached_count = 0
 
+        logger.info(f"Starting batch extraction of {len(chunks)} chunks")
+
         for i, chunk in enumerate(chunks):
             # Extract chunk
             result = self.extract_chunk(chunk)
@@ -143,6 +154,18 @@ class AsyncExtractor:
             # Update progress (will be called by background task)
             progress = i + 1
             self._update_progress(progress, len(chunks))
+
+            # Log progress every 10 chunks
+            if (i + 1) % 10 == 0 or (i + 1) == len(chunks):
+                logger.info(
+                    f"Progress: {i+1}/{len(chunks)} chunks "
+                    f"(success: {success_count}, failed: {failed_count}, cached: {cached_count})"
+                )
+
+        logger.info(
+            f"Batch extraction complete: {success_count} success, {failed_count} failed, "
+            f"{cached_count} cached"
+        )
 
         return {
             "results": results,
@@ -183,9 +206,12 @@ class AsyncExtractor:
                     json.dump(state, f, ensure_ascii=False, indent=2)
 
         except Timeout:
-            print(f"[WARN] Failed to acquire lock for state update (job {self.job_id}). Progress update skipped.")
+            logger.warning(
+                f"Failed to acquire lock for state update (job {self.job_id}). "
+                f"Progress update skipped."
+            )
         except Exception as e:
-            print(f"[ERROR] State update failed for job {self.job_id}: {e}")
+            logger.error(f"State update failed for job {self.job_id}: {e}")
 
 
 def extract_knowledge_async(job_id: str, chunks: List[Dict[str, Any]]) -> Dict[str, Any]:

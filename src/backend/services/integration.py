@@ -4,31 +4,43 @@ Knowledge deduplication and integration service.
 P0 Scope:
 - Within-textbook deduplication (single textbook demo)
 - Semantic similarity using sentence-transformers
-- Cosine similarity threshold 0.90 (biomedical domain)
+- Cosine similarity threshold from settings (default 0.90 for biomedical domain)
 - Merge duplicate nodes, preserve all source references
 - Output deduplicated graph
 """
 
 import numpy as np
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from sentence_transformers import SentenceTransformer
+import sys
+from pathlib import Path
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from utils.logger import setup_logger
+from config import settings
+
+logger = setup_logger(__name__)
 
 
 class KnowledgeIntegrator:
     """Deduplicate and integrate knowledge graph nodes."""
 
-    def __init__(self, similarity_threshold: float = 0.90):
+    def __init__(self, similarity_threshold: Optional[float] = None):
         """
         Initialize integrator with embedding model.
 
         Args:
-            similarity_threshold: Cosine similarity threshold for deduplication (0.90 for biomedical)
+            similarity_threshold: Cosine similarity threshold for deduplication (defaults to settings)
         """
-        self.similarity_threshold = similarity_threshold
+        self.similarity_threshold = similarity_threshold or settings.similarity_threshold
+
         # Load multilingual model for Chinese text
-        print("[INFO] Loading sentence-transformers model...")
-        self.model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-        print("[INFO] Model loaded")
+        logger.info(f"Loading sentence-transformers model: {settings.embedding_model}")
+        self.model = SentenceTransformer(settings.embedding_model)
+        logger.info(
+            f"Model loaded successfully. Using similarity threshold: {self.similarity_threshold}"
+        )
 
     def deduplicate_graph(self, graph: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -44,7 +56,10 @@ class KnowledgeIntegrator:
         edges = graph["edges"]
 
         if not nodes:
+            logger.warning("No nodes in graph to deduplicate")
             return graph
+
+        logger.info(f"Starting deduplication of {len(nodes)} nodes")
 
         # Compute embeddings for all nodes
         node_texts = [self._get_node_text(node) for node in nodes]
@@ -53,12 +68,21 @@ class KnowledgeIntegrator:
         # Find duplicate clusters
         duplicate_clusters = self._find_duplicates(nodes, embeddings)
 
+        logger.info(f"Found {len(duplicate_clusters)} clusters")
+
         # Merge duplicates
         merged_nodes = self._merge_nodes(nodes, duplicate_clusters)
+
+        logger.info(f"After merging: {len(merged_nodes)} nodes")
 
         # Update edges with new node IDs
         node_id_mapping = self._create_id_mapping(nodes, duplicate_clusters)
         updated_edges = self._update_edges(edges, node_id_mapping)
+
+        logger.info(f"Updated edges: {len(updated_edges)} edges")
+
+        dedup_ratio = len(merged_nodes) / len(nodes) if nodes else 1.0
+        logger.info(f"Deduplication ratio: {dedup_ratio:.2%}")
 
         return {
             "nodes": merged_nodes,
@@ -67,7 +91,7 @@ class KnowledgeIntegrator:
                 "total_nodes": len(merged_nodes),
                 "total_edges": len(updated_edges),
                 "original_nodes": len(nodes),
-                "deduplication_ratio": len(merged_nodes) / len(nodes) if nodes else 1.0
+                "deduplication_ratio": dedup_ratio
             }
         }
 
@@ -138,7 +162,7 @@ class KnowledgeIntegrator:
                 node = nodes[cluster[0]].copy()
                 node["merge_decision"] = {
                     "action": "keep",
-                    "reason": "No semantic duplicates found (similarity < 0.90)",
+                    "reason": f"No semantic duplicates found (similarity < {self.similarity_threshold})",
                     "merged_count": 0
                 }
                 merged_nodes.append(node)
@@ -153,7 +177,7 @@ class KnowledgeIntegrator:
                     "source_chunks": [],
                     "merge_decision": {
                         "action": "merge",
-                        "reason": f"Merged {len(cluster)} semantically similar nodes (similarity >= 0.90)",
+                        "reason": f"Merged {len(cluster)} semantically similar nodes (similarity >= {self.similarity_threshold})",
                         "merged_count": len(cluster) - 1,
                         "merged_labels": [nodes[idx]["label"] for idx in cluster[1:]]
                     }
@@ -233,13 +257,16 @@ class KnowledgeIntegrator:
         return unique_edges
 
 
-def deduplicate_knowledge_graph(graph: Dict[str, Any], similarity_threshold: float = 0.90) -> Dict[str, Any]:
+def deduplicate_knowledge_graph(
+    graph: Dict[str, Any],
+    similarity_threshold: Optional[float] = None
+) -> Dict[str, Any]:
     """
     Convenience function to deduplicate knowledge graph.
 
     Args:
         graph: Knowledge graph
-        similarity_threshold: Similarity threshold for deduplication
+        similarity_threshold: Similarity threshold for deduplication (defaults to settings)
 
     Returns:
         Deduplicated graph

@@ -9,7 +9,6 @@ P0 Scope:
 - Return answer with source references
 """
 
-import os
 import json
 import numpy as np
 from typing import List, Dict, Any, Optional
@@ -17,14 +16,15 @@ from pathlib import Path
 import faiss
 from sentence_transformers import SentenceTransformer
 from openai import OpenAI
-from dotenv import load_dotenv
 import sys
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from utils.paths import get_job_dir
+from utils.logger import setup_logger
+from config import settings
 
-load_dotenv()
+logger = setup_logger(__name__)
 
 
 class RAGPipeline:
@@ -35,21 +35,21 @@ class RAGPipeline:
         Initialize RAG pipeline.
 
         Args:
-            api_key: DeepSeek API key (defaults to DEEPSEEK_API_KEY env var)
+            api_key: DeepSeek API key (defaults to settings)
         """
-        self.api_key = api_key or os.getenv("DEEPSEEK_API_KEY")
+        self.api_key = api_key or settings.deepseek_api_key
         if not self.api_key or self.api_key == "your_key_here":
             raise ValueError("DEEPSEEK_API_KEY not configured in .env file")
 
         # Initialize embedding model
-        print("[INFO] Loading sentence-transformers model for RAG...")
-        self.embedding_model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-        print("[INFO] Model loaded")
+        logger.info(f"Loading sentence-transformers model: {settings.embedding_model}")
+        self.embedding_model = SentenceTransformer(settings.embedding_model)
+        logger.info("Embedding model loaded successfully")
 
         # Initialize LLM client
         self.llm_client = OpenAI(
             api_key=self.api_key,
-            base_url="https://api.deepseek.com"
+            base_url=settings.deepseek_base_url
         )
 
         # FAISS index and chunks (loaded later)
@@ -72,7 +72,7 @@ class RAGPipeline:
         self.chunks = chunks
 
         # Generate embeddings
-        print(f"[INFO] Generating embeddings for {len(chunks)} chunks...")
+        logger.info(f"Generating embeddings for {len(chunks)} chunks")
         texts = [chunk["content"] for chunk in chunks]
         embeddings = self.embedding_model.encode(texts, convert_to_numpy=True)
 
@@ -84,7 +84,7 @@ class RAGPipeline:
         faiss.normalize_L2(embeddings)
         self.index.add(embeddings)
 
-        print(f"[INFO] FAISS index built with {self.index.ntotal} vectors")
+        logger.info(f"FAISS index built with {self.index.ntotal} vectors")
 
         return "faiss_index_built"
 
@@ -111,7 +111,7 @@ class RAGPipeline:
         with open(chunks_path, 'w', encoding='utf-8') as f:
             json.dump(self.chunks, f, ensure_ascii=False, indent=2)
 
-        print(f"[INFO] Index saved to {job_dir}")
+        logger.info(f"Index saved to {job_dir}")
 
     def load_index(self, job_id: str):
         """
@@ -136,15 +136,15 @@ class RAGPipeline:
         with open(chunks_path, 'r', encoding='utf-8') as f:
             self.chunks = json.load(f)
 
-        print(f"[INFO] Index loaded from {job_dir}")
+        logger.info(f"Index loaded from {job_dir}")
 
-    def query(self, question: str, top_k: int = 3) -> Dict[str, Any]:
+    def query(self, question: str, top_k: Optional[int] = None) -> Dict[str, Any]:
         """
         Query RAG pipeline with a question.
 
         Args:
             question: User question
-            top_k: Number of chunks to retrieve (default: 3)
+            top_k: Number of chunks to retrieve (default: from settings)
 
         Returns:
             Answer with citations:
@@ -164,6 +164,10 @@ class RAGPipeline:
         """
         if self.index is None or self.chunks is None:
             raise ValueError("Index not loaded. Call build_index() or load_index() first.")
+
+        # Use configured top_k if not specified
+        if top_k is None:
+            top_k = settings.rag_top_k
 
         # Retrieve relevant chunks
         retrieved_chunks = self._retrieve(question, top_k)
@@ -248,21 +252,21 @@ class RAGPipeline:
 
         try:
             response = self.llm_client.chat.completions.create(
-                model="deepseek-chat",
+                model=settings.deepseek_model,
                 messages=[
                     {"role": "system", "content": "你是医学知识问答专家，擅长基于参考资料准确回答问题。"},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.3,
-                max_tokens=1000,
-                timeout=60  # 60s timeout to prevent hanging
+                temperature=settings.rag_temperature,
+                max_tokens=settings.rag_max_tokens,
+                timeout=settings.deepseek_timeout
             )
 
             answer = response.choices[0].message.content.strip()
             return answer
 
         except Exception as e:
-            print(f"[ERROR] LLM generation failed: {e}")
+            logger.error(f"LLM generation failed: {e}")
             return f"抱歉，生成回答时出错：{e}"
 
 
@@ -283,7 +287,7 @@ def build_rag_index(chunks: List[Dict[str, Any]], job_id: str) -> RAGPipeline:
     return pipeline
 
 
-def query_rag(question: str, job_id: str, top_k: int = 3) -> Dict[str, Any]:
+def query_rag(question: str, job_id: str, top_k: Optional[int] = None) -> Dict[str, Any]:
     """
     Convenience function to query RAG pipeline.
 

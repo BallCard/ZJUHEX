@@ -45,6 +45,163 @@ graph TB
 
 ## 2. 设计决策论证
 
+### 2.0 P2架构演进：跨教材整合
+
+**P2新增能力**：
+- 多教材上传和批量处理
+- 跨教材语义对齐（相似度阈值0.90）
+- 知识来源追踪（保留所有教材来源信息）
+- 贡献度分析（各教材独有/共享知识点）
+
+**架构扩展**：
+
+```mermaid
+graph TB
+    A[用户上传多教材] --> B{模式选择}
+    
+    B -->|单教材| C[单教材流水线]
+    B -->|跨教材| D[跨教材流水线]
+    
+    D --> E[批量解析]
+    E --> F[并行构建图谱]
+    F --> G[跨教材语义对齐]
+    G --> H[生成整合报告]
+    
+    C --> I[单教材报告]
+    H --> J[跨教材报告]
+    
+    I --> K[RAG索引]
+    J --> K
+    
+    K --> L[问答服务]
+```
+
+**关键设计**：
+
+#### 1. 状态管理扩展
+```python
+# 单教材状态
+{
+    "job_id": "abc123",
+    "mode": "single",
+    "textbook_id": "tb001",
+    "parsed_chunks": [...],
+    "knowledge_graph": {...}
+}
+
+# 跨教材状态
+{
+    "job_id": "xyz789",
+    "mode": "multiple",
+    "textbooks": {
+        "tb001": {"name": "生理学.pdf", "chunks": [...], "graph": {...}},
+        "tb002": {"name": "组织学.pdf", "chunks": [...], "graph": {...}}
+    },
+    "integrated_graph": {...},
+    "cross_textbook_report": "..."
+}
+```
+
+#### 2. 语义对齐算法
+```python
+class CrossTextbookIntegrator:
+    def align_knowledge_graphs(self, graphs: List[Dict]) -> Dict:
+        """
+        跨教材知识图谱对齐
+        
+        算法流程：
+        1. 合并所有图谱节点
+        2. 计算节点间语义相似度矩阵（sentence-transformers）
+        3. 聚类合并相似节点（阈值0.90）
+        4. 保留所有来源信息（textbook_id, chunk_id, page）
+        5. 统计贡献度（独有/共享知识点）
+        """
+        all_nodes = []
+        for graph in graphs:
+            for node in graph['nodes']:
+                node['textbook_id'] = graph['textbook_id']
+                all_nodes.append(node)
+        
+        # 语义相似度计算
+        embeddings = self.model.encode([n['definition'] for n in all_nodes])
+        similarity_matrix = cosine_similarity(embeddings)
+        
+        # 聚类合并（阈值0.90）
+        merged_nodes = self._merge_similar_nodes(all_nodes, similarity_matrix, threshold=0.90)
+        
+        return {
+            "nodes": merged_nodes,
+            "edges": self._merge_edges(graphs),
+            "statistics": self._calculate_contribution(merged_nodes)
+        }
+```
+
+#### 3. 来源追踪
+每个合并节点保留所有来源教材信息：
+```python
+{
+    "id": "node_001",
+    "name": "细胞膜",
+    "definition": "细胞膜是细胞的边界结构...",
+    "sources": [
+        {
+            "textbook_id": "tb001",
+            "textbook_name": "生理学",
+            "chunk_id": "chunk_12",
+            "page": 45,
+            "original_definition": "细胞膜是细胞的边界..."
+        },
+        {
+            "textbook_id": "tb002",
+            "textbook_name": "组织学与胚胎学",
+            "chunk_id": "chunk_08",
+            "page": 23,
+            "original_definition": "细胞膜是包围细胞的膜结构..."
+        }
+    ],
+    "textbook_coverage": 2  # 出现在2本教材中
+}
+```
+
+#### 4. 贡献度分析
+```python
+def _calculate_contribution(self, merged_nodes: List[Dict]) -> Dict:
+    """
+    计算各教材贡献度
+    
+    指标：
+    - 总贡献节点数：该教材贡献的节点总数
+    - 独有知识点：仅在该教材中出现的节点
+    - 共享知识点：与其他教材重复的节点
+    - 知识互补度：独有知识点占比
+    """
+    contribution = {}
+    
+    for node in merged_nodes:
+        for source in node['sources']:
+            tb_id = source['textbook_id']
+            if tb_id not in contribution:
+                contribution[tb_id] = {
+                    "total_nodes": 0,
+                    "unique_nodes": 0,
+                    "shared_nodes": 0
+                }
+            
+            contribution[tb_id]["total_nodes"] += 1
+            
+            if node['textbook_coverage'] == 1:
+                contribution[tb_id]["unique_nodes"] += 1
+            else:
+                contribution[tb_id]["shared_nodes"] += 1
+    
+    return contribution
+```
+
+**权衡**：
+- **优点**：完整保留来源信息，支持溯源；贡献度分析清晰
+- **缺点**：存储开销增加（每个节点保留多个来源）；相似度计算复杂度O(n²)
+- **适用场景**：中小规模教材（2-7本），节点数<5000
+
 ### 2.1 为什么选择LangGraph状态机架构？
 
 **考虑的方案**：
@@ -593,6 +750,222 @@ def validate_citation(citation, textbook_metadata):
 
 ## 6. 总结
 
+### 6.1 P2架构增强总结
+
+**新增功能**：
+1. **跨教材整合**：支持多教材上传、语义对齐、来源追踪、贡献度分析
+2. **知识图谱可视化**：Cytoscape.js交互式渲染，节点详情查看，关联导航
+3. **配置化设计**：所有参数可通过.env配置，便于调优和部署
+4. **并发安全**：文件锁保护状态更新，支持多任务并发
+5. **统一日志**：logging模块统一日志格式，便于调试和监控
+
+**架构演进**：
+- **P0**: 单教材端到端流程（简单函数链）
+- **P1**: 异步处理 + 内容检测（async/await + 后台任务）
+- **P2**: 跨教材整合 + 可视化 + 配置化（多模式支持 + 交互式UI）
+
+**技术栈完整性**：
+```
+前端：HTML + JavaScript + Cytoscape.js
+后端：FastAPI + PyMuPDF + sentence-transformers + FAISS + DeepSeek
+状态管理：文件系统 + JSON + FileLock
+配置管理：pydantic-settings + .env
+日志管理：logging模块
+```
+
+### 6.2 配置化设计（P2新增）
+
+**设计目标**：
+- 所有魔法数字和硬编码参数可配置
+- 支持环境变量和配置文件
+- 类型安全（Pydantic验证）
+- 便于不同环境部署（开发/测试/生产）
+
+**配置文件结构**（`src/backend/config.py`）：
+```python
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    # API配置
+    deepseek_api_key: str
+    deepseek_api_base: str = "https://api.deepseek.com"
+    deepseek_timeout: int = 60
+    
+    # 内容检测配置
+    min_content_page: int = 10
+    char_jump_threshold: float = 3.0
+    min_chars_per_page: int = 100
+    
+    # 语义相似度配置
+    similarity_threshold: float = 0.90
+    embedding_model: str = "paraphrase-multilingual-MiniLM-L12-v2"
+    
+    # 知识图谱配置
+    max_chunks_default: int = 3
+    max_nodes_per_chunk: int = 5
+    
+    # RAG配置
+    rag_top_k: int = 3
+    chunk_size: int = 500
+    chunk_overlap: int = 50
+    
+    # 前端配置
+    api_base_url: str = "http://localhost:8000"
+    
+    # 日志配置
+    log_level: str = "INFO"
+    log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+
+# 全局配置实例
+settings = Settings()
+```
+
+**使用示例**：
+```python
+# 服务中使用配置
+from config import settings
+
+class IntegrationService:
+    def __init__(self):
+        self.threshold = settings.similarity_threshold
+        self.model = SentenceTransformer(settings.embedding_model)
+    
+    def deduplicate(self, nodes):
+        # 使用配置的阈值
+        similarity_matrix = cosine_similarity(embeddings)
+        return self._merge_similar(similarity_matrix, threshold=self.threshold)
+```
+
+**环境变量示例**（`.env`）：
+```env
+# API配置
+DEEPSEEK_API_KEY=your_key_here
+DEEPSEEK_TIMEOUT=60
+
+# 内容检测配置
+MIN_CONTENT_PAGE=10
+CHAR_JUMP_THRESHOLD=3.0
+
+# 语义相似度配置
+SIMILARITY_THRESHOLD=0.90
+EMBEDDING_MODEL=paraphrase-multilingual-MiniLM-L12-v2
+
+# 知识图谱配置
+MAX_CHUNKS_DEFAULT=3
+MAX_NODES_PER_CHUNK=5
+
+# RAG配置
+RAG_TOP_K=3
+CHUNK_SIZE=500
+CHUNK_OVERLAP=50
+
+# 日志配置
+LOG_LEVEL=INFO
+```
+
+**优势**：
+- **类型安全**：Pydantic自动验证类型和范围
+- **环境隔离**：开发/测试/生产使用不同.env文件
+- **文档化**：配置项集中定义，便于理解和维护
+- **默认值**：提供合理默认值，减少配置负担
+
+### 6.3 并发安全设计（P2新增）
+
+**问题**：多个后台任务同时更新状态文件可能导致数据竞争
+
+**解决方案**：文件锁（FileLock）
+
+```python
+from filelock import FileLock
+
+class AsyncKnowledgeExtractor:
+    def _update_progress(self, current: int, total: int):
+        state_path = RUNTIME_DIR / self.job_id / "state.json"
+        lock_path = state_path.with_suffix('.lock')
+        
+        # 文件锁保护
+        with FileLock(str(lock_path), timeout=10):
+            # 读取当前状态
+            if state_path.exists():
+                with open(state_path, 'r', encoding='utf-8') as f:
+                    state = json.load(f)
+            else:
+                state = {}
+            
+            # 更新进度
+            state['progress'] = {
+                'current': current,
+                'total': total,
+                'percentage': (current / total * 100) if total > 0 else 0
+            }
+            
+            # 写回状态
+            with open(state_path, 'w', encoding='utf-8') as f:
+                json.dump(state, f, ensure_ascii=False, indent=2)
+```
+
+**关键特性**：
+- **超时机制**：timeout=10秒，避免死锁
+- **自动释放**：with语句自动释放锁
+- **跨进程安全**：支持多进程并发访问
+
+### 6.4 日志系统设计（P2新增）
+
+**统一日志模块**（`src/backend/utils/logger.py`）：
+```python
+import logging
+from config import settings
+
+def get_logger(name: str) -> logging.Logger:
+    """获取配置好的logger实例"""
+    logger = logging.getLogger(name)
+    
+    # 避免重复添加handler
+    if logger.handlers:
+        return logger
+    
+    logger.setLevel(getattr(logging, settings.log_level))
+    
+    # 控制台输出
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter(settings.log_format)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    
+    return logger
+```
+
+**使用示例**：
+```python
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+class ParserService:
+    def parse_pdf(self, file_path: str):
+        logger.info(f"开始解析PDF: {file_path}")
+        
+        try:
+            # 解析逻辑
+            logger.debug(f"提取到 {len(chunks)} 个文本块")
+            return chunks
+        except Exception as e:
+            logger.error(f"解析失败: {e}", exc_info=True)
+            raise
+```
+
+**日志级别使用规范**：
+- **DEBUG**: 详细调试信息（变量值、中间结果）
+- **INFO**: 关键流程节点（开始解析、完成构建）
+- **WARNING**: 可恢复的异常（降级到备用方案）
+- **ERROR**: 不可恢复的错误（解析失败、API调用失败）
+
+### 6.5 核心优势总结
+
 本系统采用**LangGraph状态机单Agent架构**，通过显式状态管理和条件边实现流程控制，支持断点恢复和错误重试。这一设计在5小时的比赛时间约束下，平衡了开发效率、系统稳定性和功能完整性。
 
 **核心优势**：
@@ -600,13 +973,17 @@ def validate_citation(citation, textbook_metadata):
 - **错误恢复**：Checkpoint机制支持断点恢复，MinerU失败自动降级Docling
 - **上下文统一**：共享State避免模块间接口耦合，便于跨节点信息传递
 - **开发高效**：2-3小时开发时间，适合5小时黑客松约束
+- **跨教材支持**：P2扩展支持多教材整合，保留完整来源追踪
+- **配置化设计**：所有参数可配置，便于调优和部署
+- **并发安全**：文件锁保护状态更新，支持多任务并发
 
 **技术栈亮点**：
 - **解析**：MinerU（中文医学PDF最佳）+ Docling备用
 - **去重**：MinHash 0.7聚类 + BGE-M3 0.91语义判断（生物医学领域阈值）
 - **压缩**：保留完整图谱 + LLMLingua检索时动态压缩到30%
 - **RAG**：BM25+FAISS混合检索 + bge-reranker-v2-m3重排 + Judge Model验证引用
-- **可视化**：Cytoscape.js (P0) → AntV G6 (P1性能优化)
+- **可视化**：Cytoscape.js (P2) → AntV G6 (P3性能优化)
+- **跨教材**：语义对齐（0.90阈值）+ 来源追踪 + 贡献度分析
 
 **适用场景**：
 - 确定性任务流程（非开放式探索）

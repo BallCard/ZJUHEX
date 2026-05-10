@@ -2,20 +2,25 @@
 Knowledge graph construction service using LLM extraction.
 
 P0 Scope:
-- Process first 10 chunks for demo (time constraint)
+- Process first N chunks for demo (time constraint, configurable)
 - Extract knowledge nodes (concepts, terms, definitions)
 - Identify relationships (前置依赖, 并列, 包含, 应用)
 - Use DeepSeek API for extraction
 - Output custom JSON structure (nodes + edges)
 """
 
-import os
 import json
 from typing import List, Dict, Any, Optional
 from openai import OpenAI
-from dotenv import load_dotenv
+import sys
+from pathlib import Path
 
-load_dotenv()
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from utils.logger import setup_logger
+from config import settings
+
+logger = setup_logger(__name__)
 
 
 class KnowledgeGraphBuilder:
@@ -26,25 +31,27 @@ class KnowledgeGraphBuilder:
         Initialize with DeepSeek API.
 
         Args:
-            api_key: DeepSeek API key (defaults to DEEPSEEK_API_KEY env var)
+            api_key: DeepSeek API key (defaults to settings)
         """
-        self.api_key = api_key or os.getenv("DEEPSEEK_API_KEY")
+        self.api_key = api_key or settings.deepseek_api_key
         if not self.api_key or self.api_key == "your_key_here":
             raise ValueError("DEEPSEEK_API_KEY not configured in .env file")
 
         # DeepSeek is OpenAI-compatible
         self.client = OpenAI(
             api_key=self.api_key,
-            base_url="https://api.deepseek.com"
+            base_url=settings.deepseek_base_url
         )
 
-    def build_graph(self, chunks: List[Dict[str, Any]], max_chunks: int = 10) -> Dict[str, Any]:
+        logger.info("KnowledgeGraphBuilder initialized with DeepSeek API")
+
+    def build_graph(self, chunks: List[Dict[str, Any]], max_chunks: Optional[int] = None) -> Dict[str, Any]:
         """
         Build knowledge graph from document chunks.
 
         Args:
             chunks: Parsed document chunks
-            max_chunks: Maximum chunks to process (P0: 3 for small sample validation)
+            max_chunks: Maximum chunks to process (defaults to settings.kg_max_chunks)
 
         Returns:
             Knowledge graph structure:
@@ -70,14 +77,22 @@ class KnowledgeGraphBuilder:
                 ]
             }
         """
+        # Use configured max_chunks if not specified
+        if max_chunks is None:
+            max_chunks = settings.kg_max_chunks
+
         # Limit chunks for P0 demo
         chunks_to_process = chunks[:max_chunks]
+
+        logger.info(f"Building knowledge graph from {len(chunks_to_process)} chunks (max: {max_chunks})")
 
         nodes = []
         edges = []
         node_id_counter = 0
 
-        for chunk in chunks_to_process:
+        for i, chunk in enumerate(chunks_to_process):
+            logger.info(f"Processing chunk {i+1}/{len(chunks_to_process)}: {chunk['chunk_id']}")
+
             # Extract knowledge from chunk
             extraction = self._extract_knowledge(chunk)
 
@@ -105,6 +120,8 @@ class KnowledgeGraphBuilder:
                         "relation": relation["type"],
                         "description": relation.get("description", "")
                     })
+
+        logger.info(f"Knowledge graph built: {len(nodes)} nodes, {len(edges)} edges")
 
         return {
             "nodes": nodes,
@@ -161,14 +178,14 @@ class KnowledgeGraphBuilder:
 
         try:
             response = self.client.chat.completions.create(
-                model="deepseek-chat",
+                model=settings.deepseek_model,
                 messages=[
                     {"role": "system", "content": "你是医学知识图谱构建专家，擅长从文本中提取结构化知识。"},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.3,
-                max_tokens=2000,
-                timeout=60  # 60s timeout to prevent hanging
+                temperature=settings.kg_temperature,
+                max_tokens=settings.kg_max_tokens,
+                timeout=settings.deepseek_timeout
             )
 
             content = response.choices[0].message.content.strip()
@@ -185,7 +202,7 @@ class KnowledgeGraphBuilder:
             return extraction
 
         except Exception as e:
-            print(f"[WARN] LLM extraction failed for chunk {chunk['chunk_id']}: {e}")
+            logger.warning(f"LLM extraction failed for chunk {chunk['chunk_id']}: {e}")
             return {"concepts": [], "relationships": []}
 
     def _find_node_by_label(self, nodes: List[Dict[str, Any]], label: str) -> Optional[Dict[str, Any]]:
@@ -201,13 +218,13 @@ class KnowledgeGraphBuilder:
             json.dump(graph, f, ensure_ascii=False, indent=2)
 
 
-def build_knowledge_graph(chunks: List[Dict[str, Any]], max_chunks: int = 10) -> Dict[str, Any]:
+def build_knowledge_graph(chunks: List[Dict[str, Any]], max_chunks: Optional[int] = None) -> Dict[str, Any]:
     """
     Convenience function to build knowledge graph.
 
     Args:
         chunks: Parsed document chunks
-        max_chunks: Maximum chunks to process
+        max_chunks: Maximum chunks to process (defaults to settings)
 
     Returns:
         Knowledge graph structure

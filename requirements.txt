@@ -3,6 +3,7 @@ fastapi>=0.110.0
 uvicorn>=0.27.0
 python-multipart>=0.0.9
 pydantic>=2.5.0
+pydantic-settings>=2.0.0
 
 # Document parsing (P0: MinerU only)
 magic-pdf>=0.7.0b1  # MinerU for Chinese medical PDFs

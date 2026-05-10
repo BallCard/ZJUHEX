@@ -10,24 +10,36 @@ P2 Scope:
 """
 
 import numpy as np
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from sentence_transformers import SentenceTransformer
+import sys
+from pathlib import Path
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from utils.logger import setup_logger
+from config import settings
+
+logger = setup_logger(__name__)
 
 
 class CrossTextbookIntegrator:
     """Integrate knowledge graphs from multiple textbooks."""
 
-    def __init__(self, similarity_threshold: float = 0.90):
+    def __init__(self, similarity_threshold: Optional[float] = None):
         """
         Initialize cross-textbook integrator.
 
         Args:
-            similarity_threshold: Cosine similarity threshold for cross-textbook deduplication
+            similarity_threshold: Cosine similarity threshold (defaults to settings)
         """
-        self.similarity_threshold = similarity_threshold
-        print("[INFO] Loading sentence-transformers model for cross-textbook integration...")
-        self.model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-        print("[INFO] Model loaded")
+        self.similarity_threshold = similarity_threshold or settings.similarity_threshold
+
+        logger.info(f"Loading sentence-transformers model: {settings.embedding_model}")
+        self.model = SentenceTransformer(settings.embedding_model)
+        logger.info(
+            f"Model loaded successfully. Using similarity threshold: {self.similarity_threshold}"
+        )
 
     def align_knowledge_graphs(self, graphs: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
@@ -41,11 +53,14 @@ class CrossTextbookIntegrator:
             Aligned and integrated knowledge graph
         """
         if not graphs:
+            logger.warning("No graphs provided for alignment")
             return {"nodes": [], "edges": [], "metadata": {}}
 
         if len(graphs) == 1:
-            # Single textbook, no cross-textbook integration needed
+            logger.info("Single textbook provided, no cross-textbook integration needed")
             return graphs[0]
+
+        logger.info(f"Aligning {len(graphs)} knowledge graphs")
 
         # Step 1: Merge all nodes with textbook metadata
         all_nodes = []
@@ -60,17 +75,17 @@ class CrossTextbookIntegrator:
                     node_copy['source_chunks'] = []
                 all_nodes.append(node_copy)
 
-        print(f"[INFO] Total nodes from {len(graphs)} textbooks: {len(all_nodes)}")
+        logger.info(f"Total nodes from {len(graphs)} textbooks: {len(all_nodes)}")
 
         # Step 2: Cross-textbook semantic deduplication
         merged_nodes = self._cross_textbook_dedup(all_nodes)
 
-        print(f"[INFO] After cross-textbook deduplication: {len(merged_nodes)} nodes")
+        logger.info(f"After cross-textbook deduplication: {len(merged_nodes)} nodes")
 
         # Step 3: Merge edges from all textbooks
         merged_edges = self._merge_edges(graphs, merged_nodes)
 
-        print(f"[INFO] Total edges after merging: {len(merged_edges)}")
+        logger.info(f"Total edges after merging: {len(merged_edges)}")
 
         # Step 4: Calculate metadata
         metadata = {
@@ -100,7 +115,10 @@ class CrossTextbookIntegrator:
             Merged nodes with source tracking
         """
         if not nodes:
+            logger.warning("No nodes provided for cross-textbook deduplication")
             return []
+
+        logger.info(f"Starting cross-textbook deduplication of {len(nodes)} nodes")
 
         # Compute embeddings for all nodes
         node_texts = [self._get_node_text(node) for node in nodes]
@@ -133,6 +151,7 @@ class CrossTextbookIntegrator:
                 # Mark as visited
                 visited.update(similar_indices)
 
+        logger.info(f"Cross-textbook deduplication created {len(merged)} merged nodes")
         return merged
 
     def _merge_similar_nodes(self, nodes: List[Dict[str, Any]]) -> Dict[str, Any]:

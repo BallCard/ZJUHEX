@@ -17,6 +17,10 @@ import sys
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from utils.paths import REPORT_DIR
+from utils.logger import setup_logger
+from config import settings
+
+logger = setup_logger(__name__)
 
 
 class ReportGenerator:
@@ -60,6 +64,7 @@ class ReportGenerator:
         with open(report_path, 'w', encoding='utf-8') as f:
             f.write(report_content)
 
+        logger.info(f"Report generated: {report_path}")
         return str(report_path)
 
     def _calculate_statistics(
@@ -158,8 +163,8 @@ class ReportGenerator:
 ## 3. 整合决策摘要
 
 ### 去重策略
-- **语义相似度阈值**: 0.90 (生物医学领域最佳实践)
-- **嵌入模型**: paraphrase-multilingual-MiniLM-L12-v2
+- **语义相似度阈值**: {settings.similarity_threshold} (生物医学领域最佳实践)
+- **嵌入模型**: {settings.embedding_model}
 - **相似度计算**: 余弦相似度
 - **合并策略**: 基于聚类的节点合并，保留所有来源引用
 

@@ -8,22 +8,40 @@ P1 Scope:
 """
 
 import re
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
+import sys
+from pathlib import Path
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from utils.logger import setup_logger
+from config import settings
+
+logger = setup_logger(__name__)
 
 
 class ContentDetector:
     """Detect content boundaries in parsed textbook chunks."""
 
-    def __init__(self, min_content_page: int = 10, char_jump_threshold: float = 3.0):
+    def __init__(
+        self,
+        min_content_page: Optional[int] = None,
+        char_jump_threshold: Optional[float] = None
+    ):
         """
         Initialize content detector.
 
         Args:
-            min_content_page: Minimum page number for content start (skip cover/preface)
-            char_jump_threshold: Multiplier for detecting char count jump (TOC -> content)
+            min_content_page: Minimum page number for content start (defaults to settings)
+            char_jump_threshold: Multiplier for detecting char count jump (defaults to settings)
         """
-        self.min_content_page = min_content_page
-        self.char_jump_threshold = char_jump_threshold
+        self.min_content_page = min_content_page or settings.min_content_page
+        self.char_jump_threshold = char_jump_threshold or settings.char_jump_threshold
+
+        logger.info(
+            f"ContentDetector initialized: min_content_page={self.min_content_page}, "
+            f"char_jump_threshold={self.char_jump_threshold}"
+        )
 
     def detect_content_start(self, chunks: List[Dict[str, Any]]) -> int:
         """
@@ -41,7 +59,10 @@ class ContentDetector:
             Index of first content chunk
         """
         if not chunks:
+            logger.warning("No chunks provided for content detection")
             return 0
+
+        logger.info(f"Detecting content start from {len(chunks)} chunks")
 
         # Strategy 1: Skip early pages
         for i, chunk in enumerate(chunks):
@@ -49,6 +70,7 @@ class ContentDetector:
             if page >= self.min_content_page:
                 # Check if this chunk has a chapter marker
                 if self._is_chapter_marker(chunk["content"]):
+                    logger.info(f"Content start detected at chunk {i} (page {page}) via chapter marker")
                     return i
                 # Otherwise, continue to strategy 3
                 break
@@ -56,6 +78,7 @@ class ContentDetector:
         # Strategy 2: Look for chapter markers anywhere
         for i, chunk in enumerate(chunks):
             if self._is_chapter_marker(chunk["content"]):
+                logger.info(f"Content start detected at chunk {i} via chapter marker (strategy 2)")
                 return i
 
         # Strategy 3: Detect character count jump
@@ -66,13 +89,19 @@ class ContentDetector:
 
                 # Detect significant jump in character count
                 if prev_chars > 0 and curr_chars > prev_chars * self.char_jump_threshold:
+                    logger.info(
+                        f"Content start detected at chunk {i} via char count jump "
+                        f"({prev_chars} -> {curr_chars})"
+                    )
                     return i
 
         # Fallback: return first chunk after min_content_page
         for i, chunk in enumerate(chunks):
             if chunk.get("page", 0) >= self.min_content_page:
+                logger.info(f"Content start fallback to chunk {i} (page {chunk.get('page', 0)})")
                 return i
 
+        logger.warning("Content start detection failed, defaulting to chunk 0")
         return 0
 
     def select_chapter(self, chunks: List[Dict[str, Any]], chapter_num: int = 1) -> List[Dict[str, Any]]:
@@ -87,7 +116,10 @@ class ContentDetector:
             List of chunks belonging to the chapter, with chapter_title metadata added
         """
         if not chunks:
+            logger.warning("No chunks provided for chapter selection")
             return []
+
+        logger.info(f"Selecting chapter {chapter_num} from {len(chunks)} chunks")
 
         # Find chapter boundaries
         chapter_starts = []
@@ -95,8 +127,11 @@ class ContentDetector:
             if self._is_chapter_marker(chunk["content"]):
                 chapter_starts.append(i)
 
+        logger.info(f"Found {len(chapter_starts)} chapter markers")
+
         # If no chapter markers found, return all chunks with default title
         if not chapter_starts:
+            logger.warning("No chapter markers found, using all chunks as single chapter")
             default_title = f"第{chapter_num}章"
             return [
                 {**chunk, "chapter_title": default_title}
@@ -105,7 +140,7 @@ class ContentDetector:
 
         # Select the requested chapter
         if chapter_num > len(chapter_starts):
-            # Requested chapter doesn't exist, return empty
+            logger.warning(f"Requested chapter {chapter_num} exceeds available chapters ({len(chapter_starts)})")
             return []
 
         start_idx = chapter_starts[chapter_num - 1]
@@ -113,6 +148,11 @@ class ContentDetector:
 
         # Extract chapter title
         chapter_title = self._extract_chapter_title(chunks[start_idx]["content"])
+
+        logger.info(
+            f"Selected chapter '{chapter_title}': chunks {start_idx}-{end_idx} "
+            f"({end_idx - start_idx} chunks)"
+        )
 
         # Return chapter chunks with metadata
         chapter_chunks = []
