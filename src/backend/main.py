@@ -709,6 +709,51 @@ def get_graph(job_id: str):
     }
 
 
+@app.get("/api/jobs/{job_id}/graph")
+def get_graph_cytoscape(job_id: str):
+    """
+    Get knowledge graph in Cytoscape format for frontend visualization.
+
+    Args:
+        job_id: Job identifier
+
+    Returns:
+        Cytoscape-formatted graph: [{data: {...}}, ...]
+    """
+    # Get graph data using existing endpoint
+    graph_data = get_graph(job_id)
+
+    # Convert to Cytoscape format
+    cytoscape_elements = []
+
+    # Add nodes
+    for node in graph_data.get("nodes", []):
+        cytoscape_elements.append({
+            "data": {
+                "id": node["id"],
+                "label": node["label"],
+                "category": node.get("type", "concept"),
+                "definition": node.get("definition", ""),
+                "textbook": node.get("textbook", "未知教材"),
+                "source_page": node.get("source_page", "未知"),
+                "source_chunk": node.get("source_chunks", [""])[0] if node.get("source_chunks") else "",
+                "neighbors": []  # Will be populated by frontend
+            }
+        })
+
+    # Add edges
+    for edge in graph_data.get("edges", []):
+        cytoscape_elements.append({
+            "data": {
+                "id": edge.get("id", f"e_{edge['source']}_{edge['target']}"),
+                "source": edge["source"],
+                "target": edge["target"]
+            }
+        })
+
+    return cytoscape_elements
+
+
 @app.post("/api/upload_multiple")
 async def upload_multiple_textbooks(files: List[UploadFile] = File(...)):
     """

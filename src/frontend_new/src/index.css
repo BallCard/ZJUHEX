@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Instrument+Serif:ital,wght@0,400;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Instrument Serif", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  --color-anthropic-bg: #FBF9F4;
+  --color-anthropic-ink: #1D1D1B;
+  --color-anthropic-muted: #8B8B84;
+  --color-anthropic-accent: #D97757;
+  --color-anthropic-border: #E8E6E1;
+  --color-anthropic-soft: #F5F2ED;
+  --color-anthropic-paper: #FFFFFF;
+  
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2.25rem;
+  
+  --shadow-majestic: 0 25px 50px -12px rgba(29, 29, 27, 0.08);
+  --shadow-subtle: 0 2px 4px rgba(29, 29, 27, 0.02);
+}
+
+@layer base {
+  body {
+    @apply bg-anthropic-bg text-anthropic-ink font-sans antialiased selection:bg-anthropic-accent selection:text-white overflow-hidden;
+  }
+  
+  h1, h2, h3, h4 {
+    @apply font-serif;
+  }
+}
+
+@layer utilities {
+  .anthropic-card {
+    @apply bg-white border border-anthropic-border shadow-subtle rounded-2xl;
+  }
+  
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-xl border border-anthropic-border shadow-majestic;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
