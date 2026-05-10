@@ -297,6 +297,36 @@ export default function App() {
     }
   };
 
+  // Poll job progress until completion
+  const pollJobProgress = async (jobId: string, targetStatuses: string[], maxAttempts = 60) => {
+    for (let i = 0; i < maxAttempts; i++) {
+      await new Promise(r => setTimeout(r, 2000)); // Poll every 2 seconds
+
+      try {
+        const progressRes = await apiCall(`/api/jobs/${jobId}/progress`);
+
+        if (targetStatuses.includes(progressRes.status)) {
+          return progressRes;
+        }
+
+        if (progressRes.status === 'failed') {
+          throw new Error(progressRes.error || 'Job failed');
+        }
+
+        // Update progress if available
+        if (progressRes.percentage) {
+          setProgress(prev => ({
+            ...prev,
+            progress: Math.min(prev.progress + 5, 90)
+          }));
+        }
+      } catch (err) {
+        if (i === maxAttempts - 1) throw err;
+      }
+    }
+    throw new Error('Job timeout');
+  };
+
   // File Upload Handler
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -328,6 +358,9 @@ export default function App() {
         setProgress({ status: 'processing', progress: 40, total: 100 });
         await apiCall(`/api/build_graph/${newJobId}`, { method: 'POST' });
 
+        // Step 3.5: Wait for graph building to complete
+        await pollJobProgress(newJobId, ['graph_built']);
+
         // Step 4: Integrate
         setProgress({ status: 'processing', progress: 60, total: 100 });
         await apiCall(`/api/integrate/${newJobId}`, { method: 'POST' });
@@ -358,13 +391,25 @@ export default function App() {
         const newJobId = uploadRes.job_id;
         setJobId(newJobId);
 
-        // Cross-textbook integration
+        // Step 2: Parse multiple textbooks
+        setProgress({ status: 'processing', progress: 20, total: 100 });
+        await apiCall(`/api/parse_multiple/${newJobId}`, { method: 'POST' });
+
+        // Step 3: Build graphs for all textbooks (async)
+        setProgress({ status: 'processing', progress: 40, total: 100 });
+        await apiCall(`/api/build_graphs_multiple/${newJobId}`, { method: 'POST' });
+
+        // Step 4: Poll for completion
         setProgress({ status: 'processing', progress: 50, total: 100 });
+        await pollJobProgress(newJobId, ['graphs_built', 'partially_failed']);
+
+        // Step 5: Cross-textbook integration
+        setProgress({ status: 'processing', progress: 70, total: 100 });
         await apiCall(`/api/cross_integrate/${newJobId}`, { method: 'POST' });
 
         // Load graph
         setProgress({ status: 'processing', progress: 95, total: 100 });
-        const graphRes = await apiCall(`/api/jobs/${newJobId}/graph`);
+        const graphRes = await apiCall(`/api/cross_graph/${newJobId}`);
         setGraphData(graphRes);
 
         setProgress({ status: 'completed', progress: 100, total: 100 });

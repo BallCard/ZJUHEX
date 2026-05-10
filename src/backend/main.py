@@ -14,6 +14,7 @@ import uuid
 from pathlib import Path
 from typing import List, Optional
 from datetime import datetime
+from filelock import FileLock
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
@@ -90,6 +91,7 @@ def save_job_state(job_id: str, state: dict):
 def update_job_state(job_id: str, updates: dict):
     """
     Update job state with incremental changes (merge, not overwrite).
+    Thread-safe with file locking.
 
     Args:
         job_id: Job identifier
@@ -99,21 +101,24 @@ def update_job_state(job_id: str, updates: dict):
     job_dir.mkdir(parents=True, exist_ok=True)
 
     state_path = job_dir / "state.json"
+    lock_path = job_dir / "state.json.lock"
 
-    # Load existing state
-    if state_path.exists():
-        with open(state_path, 'r', encoding='utf-8') as f:
-            state = json.load(f)
-    else:
-        state = {}
+    # Use file lock for thread safety
+    with FileLock(str(lock_path), timeout=10):
+        # Load existing state
+        if state_path.exists():
+            with open(state_path, 'r', encoding='utf-8') as f:
+                state = json.load(f)
+        else:
+            state = {}
 
-    # Merge updates
-    state.update(updates)
-    state["updated_at"] = datetime.now().isoformat()
+        # Merge updates
+        state.update(updates)
+        state["updated_at"] = datetime.now().isoformat()
 
-    # Save state
-    with open(state_path, 'w', encoding='utf-8') as f:
-        json.dump(state, f, ensure_ascii=False, indent=2)
+        # Save state
+        with open(state_path, 'w', encoding='utf-8') as f:
+            json.dump(state, f, ensure_ascii=False, indent=2)
 
 
 def load_job_state(job_id: str) -> dict:
@@ -193,32 +198,40 @@ def parse_document(job_id: str):
         chunks_count: Number of parsed chunks
         total_chars: Total character count
     """
-    # Load job state
-    state = load_job_state(job_id)
+    try:
+        # Load job state
+        state = load_job_state(job_id)
 
-    # Parse document
-    file_path = state["file_path"]
-    chunks = parse_textbook(file_path)
+        # Parse document
+        file_path = state["file_path"]
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail=f"File not found: {file_path}")
 
-    # Save chunks
-    chunks_path = get_job_dir(job_id) / "parsed_chunks.json"
-    with open(chunks_path, 'w', encoding='utf-8') as f:
-        json.dump(chunks, f, ensure_ascii=False, indent=2)
+        chunks = parse_textbook(file_path)
 
-    # Update state
-    state["status"] = "parsed"
-    state["current_phase"] = "parse"
-    state["chunks_count"] = len(chunks)
-    state["total_chars"] = sum(c["char_count"] for c in chunks)
-    state["updated_at"] = datetime.now().isoformat()
-    save_job_state(job_id, state)
+        # Save chunks
+        chunks_path = get_job_dir(job_id) / "parsed_chunks.json"
+        with open(chunks_path, 'w', encoding='utf-8') as f:
+            json.dump(chunks, f, ensure_ascii=False, indent=2)
 
-    return {
-        "job_id": job_id,
-        "chunks_count": len(chunks),
-        "total_chars": state["total_chars"],
-        "message": "Document parsed successfully"
-    }
+        # Update state
+        state["status"] = "parsed"
+        state["current_phase"] = "parse"
+        state["chunks_count"] = len(chunks)
+        state["total_chars"] = sum(c["char_count"] for c in chunks)
+        state["updated_at"] = datetime.now().isoformat()
+        save_job_state(job_id, state)
+
+        return {
+            "job_id": job_id,
+            "chunks_count": len(chunks),
+            "total_chars": state["total_chars"],
+            "message": "Document parsed successfully"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Parse failed: {str(e)}")
 
 
 def build_graph_task(job_id: str, max_chunks: int = None, chapter_num: int = 1):
@@ -394,36 +407,44 @@ def integrate_knowledge(job_id: str):
         deduplicated_nodes: Deduplicated node count
         deduplication_ratio: Ratio after deduplication
     """
-    # Load graph
-    graph_path = get_job_dir(job_id) / "knowledge_graph.json"
-    with open(graph_path, 'r', encoding='utf-8') as f:
-        graph = json.load(f)
+    try:
+        # Load graph
+        graph_path = get_job_dir(job_id) / "knowledge_graph.json"
+        if not graph_path.exists():
+            raise HTTPException(status_code=404, detail="Knowledge graph not found. Please build graph first.")
 
-    # Deduplicate
-    deduplicated = deduplicate_knowledge_graph(graph)
+        with open(graph_path, 'r', encoding='utf-8') as f:
+            graph = json.load(f)
 
-    # Save deduplicated graph
-    dedup_path = get_job_dir(job_id) / "deduplicated_graph.json"
-    with open(dedup_path, 'w', encoding='utf-8') as f:
-        json.dump(deduplicated, f, ensure_ascii=False, indent=2)
+        # Deduplicate
+        deduplicated = deduplicate_knowledge_graph(graph)
 
-    # Update state
-    state = load_job_state(job_id)
-    state["status"] = "integrated"
-    state["current_phase"] = "integrate"
-    state["deduplicated_nodes"] = deduplicated["metadata"]["total_nodes"]
-    state["deduplicated_edges"] = deduplicated["metadata"]["total_edges"]
-    state["deduplication_ratio"] = deduplicated["metadata"]["deduplication_ratio"]
-    state["updated_at"] = datetime.now().isoformat()
-    save_job_state(job_id, state)
+        # Save deduplicated graph
+        dedup_path = get_job_dir(job_id) / "deduplicated_graph.json"
+        with open(dedup_path, 'w', encoding='utf-8') as f:
+            json.dump(deduplicated, f, ensure_ascii=False, indent=2)
 
-    return {
-        "job_id": job_id,
-        "original_nodes": len(graph["nodes"]),
-        "deduplicated_nodes": deduplicated["metadata"]["total_nodes"],
-        "deduplication_ratio": deduplicated["metadata"]["deduplication_ratio"],
-        "message": "Knowledge integrated successfully"
-    }
+        # Update state
+        state = load_job_state(job_id)
+        state["status"] = "integrated"
+        state["current_phase"] = "integrate"
+        state["deduplicated_nodes"] = deduplicated["metadata"]["total_nodes"]
+        state["deduplicated_edges"] = deduplicated["metadata"]["total_edges"]
+        state["deduplication_ratio"] = deduplicated["metadata"]["deduplication_ratio"]
+        state["updated_at"] = datetime.now().isoformat()
+        save_job_state(job_id, state)
+
+        return {
+            "job_id": job_id,
+            "original_nodes": len(graph["nodes"]),
+            "deduplicated_nodes": deduplicated["metadata"]["total_nodes"],
+            "deduplication_ratio": deduplicated["metadata"]["deduplication_ratio"],
+            "message": "Knowledge integrated successfully"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Integration failed: {str(e)}")
 
 
 @app.post("/api/generate_report/{job_id}")
