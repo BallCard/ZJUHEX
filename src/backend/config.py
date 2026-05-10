@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     # API Configuration
-    deepseek_api_key: str
+    deepseek_api_key: str = "your_key_here"  # Default for testing, override in .env
     deepseek_base_url: str = "https://api.deepseek.com"
     deepseek_timeout: int = 60
     deepseek_model: str = "deepseek-chat"
