@@ -6,75 +6,108 @@
 
 ### 1.1 整体架构
 
-本系统采用**模块化单Agent架构**，通过功能模块划分实现职责分离，同时保持统一的控制流程。
+本系统采用**LangGraph状态机单Agent架构**，通过状态转移管理整个知识整合流程，支持断点恢复和错误重试。
 
 ```mermaid
 graph TB
-    A[用户请求] --> B[API Gateway]
-    B --> C{请求类型}
+    A[用户请求] --> B[LangGraph状态机]
+    B --> C{当前状态}
     
-    C -->|上传解析| D[文档解析模块]
-    C -->|构建图谱| E[知识提取模块]
-    C -->|整合教材| F[语义对齐模块]
-    C -->|RAG问答| G[检索生成模块]
-    C -->|多轮对话| H[对话管理模块]
+    C -->|Parse| D[文档解析节点]
+    C -->|Extract| E[知识提取节点]
+    C -->|Deduplicate| F[去重整合节点]
+    C -->|Compress| G[压缩验证节点]
+    C -->|Index| H[RAG索引节点]
+    C -->|Query| I[问答生成节点]
     
-    D --> I[结构化存储]
-    E --> J[图谱数据库]
+    D --> J[状态存储/Checkpoint]
+    E --> J
     F --> J
-    G --> K[向量数据库]
-    H --> L[LLM API]
+    G --> J
+    H --> J
+    I --> J
     
-    E --> L
-    F --> L
-    G --> L
+    J --> K{完整性检查}
+    K -->|失败| F
+    K -->|成功| L[END]
 ```
 
-### 1.2 核心模块
+### 1.2 核心节点
 
-| 模块 | 职责 | 输入 | 输出 |
-|------|------|------|------|
-| 文档解析模块 | PDF/DOCX/MD/TXT解析，章节识别 | 原始文件 | 结构化文本 |
-| 知识提取模块 | LLM提取知识点，识别关系 | 章节文本 | 知识图谱 |
-| 语义对齐模块 | 跨教材知识点去重，整合决策 | 多个图谱 | 整合图谱 |
-| 检索生成模块 | RAG问答，引用来源 | 用户问题 | 回答+引用 |
-| 对话管理模块 | 多轮对话，修改整合决策 | 对话历史 | 更新决策 |
+| 节点 | 职责 | 输入 | 输出 | 失败处理 |
+|------|------|------|------|---------|
+| Parse | MinerU解析PDF，Docling备用 | 原始文件 | 结构化文本+章节 | 降级到Docling |
+| Extract | LlamaIndex提取知识点，构建PropertyGraph | 章节文本 | 知识图谱 | 重试3次 |
+| Deduplicate | MinHash聚类+BGE-M3语义判断(0.91) | 多个图谱 | 去重后图谱 | 降低阈值重试 |
+| Compress | 验证压缩比≤30%，保留完整图谱 | 整合图谱 | 压缩报告 | 调整去重阈值 |
+| Index | BM25+FAISS混合索引，bge-reranker重排 | 整合图谱 | 检索索引 | 清空重建 |
+| Query | LLMLingua压缩+Judge Model验证引用 | 用户问题 | 回答+验证引用 | 返回错误提示 |
 
 ## 2. 设计决策论证
 
-### 2.1 为什么选择单Agent架构？
+### 2.1 为什么选择LangGraph状态机架构？
 
 **考虑的方案**：
-1. **单Agent方案**：所有功能由一个统一的Agent协调完成
-2. **多Agent方案**：每个功能模块独立为一个Agent，通过消息传递协作
+1. **简单函数调用链**：parse() → extract() → deduplicate() → compress()
+2. **LangGraph状态机**：显式状态管理，支持断点恢复和条件跳转
+3. **CrewAI多Agent**：角色分工（Parser Agent、Extractor Agent、Integrator Agent）
+4. **AutoGen对话式Agent**：Agent间对话协商整合决策
 
-**选择单Agent的理由**：
+**选择LangGraph的理由**：
 
-#### 理由1：任务流程线性，无需并行协作
-本系统的核心流程是线性的：
+#### 理由1：企业级流程控制
+本系统需要严格的流程控制：
+- **条件跳转**：压缩比>30%时，回到Deduplicate节点调整阈值
+- **错误重试**：MinerU解析失败时，自动降级到Docling
+- **断点恢复**：处理7本教材时，中途失败可从checkpoint恢复
+
+LangGraph的StateGraph提供：
+```python
+workflow.add_conditional_edges(
+    "Compress",
+    lambda state: "retry" if state["compression_ratio"] > 0.30 else "finish",
+    {
+        "retry": "Deduplicate",  # 压缩比不达标，回退调整
+        "finish": END
+    }
+)
 ```
-上传 → 解析 → 提取 → 整合 → 问答
+
+简单函数链无法实现这种动态控制，CrewAI/AutoGen的对话式协商不适合确定性流程。
+
+#### 理由2：5小时时间约束
+**开发速度对比**（基于四源调研）：
+
+| 方案 | 开发时间 | 调试难度 | 适用场景 |
+|------|---------|---------|---------|
+| 简单函数链 | 1小时 | 低 | 无错误处理需求 |
+| **LangGraph** | **2-3小时** | **中** | **确定性流程+错误恢复** |
+| CrewAI | 3-4小时 | 中 | 角色分工明确的协作任务 |
+| AutoGen | 4-5小时 | 高 | 开放式探索任务 |
+
+LangGraph在"流程控制能力"和"开发速度"之间取得最佳平衡。
+
+#### 理由3：避免上下文碎片化
+多Agent架构（CrewAI/AutoGen）中，每个Agent维护独立上下文：
+- **信息孤岛**：Extractor Agent不知道Integrator Agent的去重决策
+- **重复LLM调用**：每个Agent都需要理解任务背景
+- **调试困难**：错误可能出现在任何Agent或Agent间通信
+
+LangGraph单Agent + 共享State：
+```python
+class IntegrationState(TypedDict):
+    textbooks: list[str]
+    parsed_data: dict
+    knowledge_graphs: list[dict]
+    dedup_threshold: float  # 共享状态，所有节点可访问
+    compression_ratio: float
+    final_graph: dict
 ```
-每个步骤依赖前一步的输出，不存在多个Agent需要并行工作的场景。多Agent的协调开销（消息传递、状态同步）反而会降低效率。
 
-#### 理由2：避免上下文碎片化
-多Agent架构中，每个Agent维护独立的上下文，导致：
-- **信息孤岛**：知识提取Agent不知道整合Agent的决策
-- **重复调用LLM**：每个Agent都需要单独理解用户意图
-- **调试困难**：问题可能出现在任何Agent或Agent间通信
-
-单Agent架构下，所有模块共享同一上下文，便于：
-- 全局状态管理（如压缩比实时计算）
-- 跨模块信息传递（如RAG问答时引用整合后的图谱）
-- 错误追踪和调试
-
-#### 理由3：降低系统复杂度
-多Agent架构需要额外设计：
-- Agent间通信协议
-- 任务分发与调度机制
-- 冲突解决策略（如两个Agent对同一知识点做出不同决策）
-
-在5小时的比赛时间内，单Agent架构能更快实现和调试。
+所有节点共享同一State，便于：
+- 全局状态管理（如实时计算压缩比）
+- 跨节点信息传递（RAG查询时引用整合后的图谱）
+- 错误追踪（State包含完整执行历史）
 
 **权衡**：
 - **优点**：简单、高效、易调试
@@ -130,61 +163,87 @@ PROMPTS = {
 
 ### 2.3 数据流与调用链路
 
-#### 完整流程示例：上传教材 → RAG问答
+#### LangGraph状态机数据流
+
+LangGraph通过共享State在节点间传递数据，避免传统模块间接口耦合：
+
+```python
+class IntegrationState(TypedDict):
+    # 输入数据
+    textbooks: list[str]              # 原始教材路径
+    
+    # Parse节点输出
+    parsed_data: dict[str, dict]      # {textbook_id: {chapters: [...], metadata: {...}}}
+    
+    # Extract节点输出
+    knowledge_graphs: list[dict]      # [{graph_id, nodes, edges}, ...]
+    
+    # Deduplicate节点输出
+    dedup_decisions: list[dict]       # [{node_a, node_b, action: "merge/keep"}, ...]
+    integrated_graph: dict            # 整合后的图谱
+    
+    # Compress节点输出
+    compression_ratio: float          # 当前压缩比
+    compression_report: dict          # 压缩详情
+    
+    # Index节点输出
+    rag_index_path: str               # 向量索引路径
+    chunk_count: int                  # 分块数量
+    
+    # Query节点输出
+    query_result: dict                # RAG问答结果
+    
+    # 控制参数
+    dedup_threshold: float            # 去重阈值（动态调整）
+    retry_count: int                  # 重试次数
+```
+
+**状态转移示例**：
 
 ```mermaid
 sequenceDiagram
     participant U as 用户
     participant API as API Gateway
-    participant P as 解析模块
-    participant E as 提取模块
-    participant I as 整合模块
-    participant R as RAG模块
+    participant LG as LangGraph状态机
+    participant State as 共享State
     participant LLM as LLM API
-    participant DB as 数据存储
 
     U->>API: 上传教材
-    API->>P: 解析PDF
-    P->>DB: 保存结构化文本
+    API->>LG: invoke({"textbooks": [...]})
     
-    U->>API: 构建图谱
-    API->>E: 提取知识点
-    E->>LLM: 调用提取Prompt
-    LLM-->>E: 返回知识点
-    E->>LLM: 调用关系识别Prompt
-    LLM-->>E: 返回关系
-    E->>DB: 保存图谱
+    LG->>State: 初始化State
+    LG->>LG: Parse节点
+    LG->>State: 更新parsed_data
     
-    U->>API: 整合教材
-    API->>I: 语义对齐
-    I->>I: Embedding相似度计算
-    I->>LLM: 调用对齐Prompt
-    LLM-->>I: 返回对齐结果
-    I->>DB: 保存整合图谱
+    LG->>LG: Extract节点
+    LG->>LLM: 提取知识点
+    LLM-->>LG: 返回知识点
+    LG->>State: 更新knowledge_graphs
     
-    U->>API: RAG问答
-    API->>R: 检索+生成
-    R->>DB: 向量检索
-    DB-->>R: 返回相关chunk
-    R->>LLM: 调用RAG Prompt
-    LLM-->>R: 返回回答+引用
-    R-->>API: 返回结果
-    API-->>U: 显示回答
+    LG->>LG: Deduplicate节点
+    LG->>LLM: 语义对齐判断
+    LLM-->>LG: 返回对齐结果
+    LG->>State: 更新integrated_graph
+    
+    LG->>LG: Compress节点
+    LG->>State: 计算compression_ratio
+    
+    alt 压缩比>30%
+        LG->>State: 调整dedup_threshold
+        LG->>LG: 回到Deduplicate节点
+    else 压缩比≤30%
+        LG->>LG: Index节点
+        LG->>State: 更新rag_index_path
+        LG->>API: 返回final_state
+    end
+    
+    API-->>U: 返回整合报告
 ```
 
-**关键接口**：
-
-1. **解析模块 → 提取模块**
-   - 输入：`{"textbook_id": "book_01", "chapters": [...]}`
-   - 输出：`{"graph_id": "graph_01", "nodes": [...], "edges": [...]}`
-
-2. **提取模块 → 整合模块**
-   - 输入：`{"graph_ids": ["graph_01", "graph_02"]}`
-   - 输出：`{"integration_id": "int_01", "decisions": [...], "compression_ratio": 0.28}`
-
-3. **整合模块 → RAG模块**
-   - 输入：整合后的知识库（用于建立向量索引）
-   - 输出：`{"chunk_count": 2500, "index_path": "..."}`
+**关键优势**：
+- **无接口定义**：节点直接读写State，无需定义模块间接口
+- **全局可见**：任何节点都能访问完整执行历史（如RAG查询时引用整合决策）
+- **断点恢复**：State持久化到checkpoint，失败后可从任意节点恢复
 
 ## 3. RAG Pipeline设计
 
@@ -210,14 +269,16 @@ sequenceDiagram
 **候选模型**：
 1. `paraphrase-multilingual-MiniLM-L12-v2`：多语言，384维
 2. `BGE-small-zh`：中文优化，512维
-3. OpenAI `text-embedding-3-small`：1536维，API调用
+3. `BGE-M3 (BAAI/bge-m3)`：多向量混合（dense+sparse+multi-vector），支持100+语言
+4. OpenAI `text-embedding-3-small`：1536维，API调用
 
-**选择：BGE-small-zh**
+**选择：BGE-M3**
 
-**理由**：
-- 本项目教材为中文，中文优化模型效果更好
-- 本地运行，免费，无API调用延迟
-- 512维向量在FAISS中检索速度快
+**理由**（基于四源调研）：
+- **多向量混合**：同时生成dense向量（语义）、sparse向量（关键词）、multi-vector（细粒度匹配）
+- **医学领域优势**：在生物医学文献检索任务上优于单一向量模型
+- **本地运行**：免费，无API调用延迟和成本
+- **与去重一致**：去重阶段也使用BGE-M3（阈值0.91），保持一致性
 
 ### 3.3 检索策略
 
@@ -228,32 +289,59 @@ query_vector = embedding_model.encode(question)
 results = faiss_index.search(query_vector, k=5)
 ```
 
-**进阶方案（P1加分项）：混合检索 + Rerank**
+**本项目方案：混合检索 + Rerank + 动态压缩 + Judge Model验证**
+
 ```python
-# 1. 向量检索（Top-10）
-vector_results = faiss_index.search(query_vector, k=10)
+# 1. 并行检索
+vector_results = faiss_index.search(query_vector, k=10)  # BGE-M3向量检索
+bm25_results = bm25.get_top_n(question, chunks, n=10)    # BM25关键词检索
 
-# 2. BM25关键词检索（Top-10）
-bm25_results = bm25.get_top_n(question, chunks, n=10)
+# 2. RRF融合排序
+combined = reciprocal_rank_fusion(vector_results, bm25_results)
 
-# 3. 合并去重
-combined = merge_and_deduplicate(vector_results, bm25_results)
+# 3. bge-reranker-v2-m3重排（Cross-Encoder）
+reranked = reranker.compute_score([[question, c] for c in combined])
+top_chunks = reranked[:5]
 
-# 4. Rerank（使用Cross-Encoder重排序）
-reranked = cross_encoder.rank(question, combined)
-final_results = reranked[:5]
+# 4. LLMLingua动态压缩到30%
+compressed_context = llmlingua.compress_prompt(
+    "\n\n".join(top_chunks),
+    rate=0.3,
+    force_tokens=['\n', '。', '：']  # 保留中文标点
+)
+
+# 5. LLM生成回答
+answer = llm.complete(f"上下文：{compressed_context}\n问题：{question}")
+
+# 6. Judge Model验证引用（confidence>=0.8）
+for citation in answer.citations:
+    verification = judge_model.verify(question, answer.text, citation.source)
+    if verification.confidence < 0.8:
+        citation.mark_as_unverified()
 ```
+
+**技术栈对应**：
+- **向量检索**：FAISS + BGE-M3 dense vectors
+- **关键词检索**：BM25 (rank-bm25库)
+- **融合排序**：RRF (Reciprocal Rank Fusion)
+- **重排序**：bge-reranker-v2-m3 (FlagEmbedding)
+- **动态压缩**：LLMLingua (保留完整图谱，检索时压缩)
+- **引用验证**：Judge Model (LlamaIndex CitationQueryEngine)
 
 **预期效果**：
 - 向量检索：召回语义相关内容
-- BM25检索：召回关键词匹配内容
+- BM25检索：召回关键词匹配内容（如专业术语）
 - Rerank：提升Top-5的精准度
+- 动态压缩：满足30%压缩比要求，同时保留完整图谱用于教学
+- Judge Model：过滤幻觉引用，提升可信度
 
 ### 3.4 引用来源提取
 
-**挑战**：LLM生成的回答需要准确标注引用来源
+**挑战**：LLM生成的回答需要准确标注引用来源，且需验证引用真实性
 
-**方案**：在Prompt中强制要求引用格式
+**方案：LlamaIndex CitationQueryEngine + Judge Model验证**
+
+#### 阶段1：强制引用格式（Prompt约束）
 ```python
 prompt = f"""
 上下文：
@@ -280,6 +368,79 @@ prompt = f"""
 }}
 """
 ```
+
+#### 阶段2：Judge Model验证（PaperQA2-style）
+```python
+from llama_index.core.query_engine import CitationQueryEngine
+
+class VerifiedRAG:
+    def __init__(self):
+        self.citation_engine = CitationQueryEngine.from_args(
+            index=self.knowledge_graph_index,
+            similarity_top_k=5,
+            citation_chunk_size=512
+        )
+        self.judge_model = self._load_judge_model()
+    
+    def query_with_verification(self, question: str) -> dict:
+        # Step 1: 检索并生成回答
+        response = self.citation_engine.query(question)
+        
+        # Step 2: Judge Model逐条验证引用
+        for citation in response.source_nodes:
+            verification = self.judge_model.verify(
+                question=question,
+                answer=response.response,
+                source=citation.text
+            )
+            citation.metadata["verified"] = verification["is_supported"]
+            citation.metadata["confidence"] = verification["confidence"]
+        
+        # Step 3: 过滤低置信度引用（confidence < 0.8）
+        verified_citations = [
+            c for c in response.source_nodes 
+            if c.metadata["verified"] and c.metadata["confidence"] >= 0.8
+        ]
+        
+        return {
+            "answer": response.response,
+            "citations": [
+                {
+                    "textbook": c.metadata["textbook"],
+                    "chapter": c.metadata["chapter"],
+                    "page": c.metadata["page_start"],
+                    "content": c.text,
+                    "confidence": c.metadata["confidence"],
+                    "verified": True
+                }
+                for c in verified_citations
+            ],
+            "unverified_count": len(response.source_nodes) - len(verified_citations)
+        }
+```
+
+**Judge Model Prompt示例**：
+```python
+judge_prompt = f"""
+判断以下引用是否支持回答中的陈述。
+
+问题：{question}
+回答片段：{answer_snippet}
+引用来源：{source_text}
+
+输出JSON：
+{{
+  "is_supported": true/false,
+  "confidence": 0.0-1.0,
+  "reason": "解释为什么支持或不支持"
+}}
+"""
+```
+
+**优势**：
+- **防幻觉**：Judge Model过滤LLM编造的引用
+- **可信度量化**：confidence分数让用户判断引用可靠性
+- **溯源完整**：每个引用都能追溯到原始教材的具体位置
 
 ## 4. Prompt工程
 
@@ -346,31 +507,55 @@ def validate_citation(citation, textbook_metadata):
 
 ### 5.1 放弃的方案
 
-#### 方案A：多Agent协作架构
-- **原因**：任务流程线性，无需并行协作，多Agent增加复杂度
-- **权衡**：牺牲了扩展性，换取开发效率和系统稳定性
+#### 方案A：CrewAI/AutoGen多Agent协作架构
+- **原因**：
+  - 任务流程确定性强（Parse → Extract → Deduplicate → Compress），无需Agent间协商
+  - 多Agent增加上下文碎片化风险（每个Agent独立上下文）
+  - 开发时间4-5小时，超出5小时比赛时间约束
+- **权衡**：牺牲了并行处理能力和角色专业化，换取开发效率和系统稳定性
+- **适用场景**：CrewAI适合角色分工明确的协作任务（如软件开发团队模拟），AutoGen适合开放式探索任务
 
-#### 方案B：图数据库（Neo4j）
+#### 方案B：全局压缩（直接删除重复知识点）
+- **原因**：
+  - 破坏教学依赖链（删除"静息电位"会导致"动作电位"无法理解）
+  - 压缩比难以精确控制（可能过度压缩或压缩不足）
+  - 不可逆操作，无法根据查询动态调整详略
+- **权衡**：采用"保留完整图谱 + 检索时动态压缩"策略，牺牲存储空间（完整图谱），换取教学完整性和灵活性
+- **技术实现**：LLMLingua在RAG检索时压缩上下文到30%，满足压缩比要求
+
+#### 方案C：图数据库（Neo4j）
 - **原因**：需要额外部署，增加部署复杂度
-- **权衡**：使用JSON文件存储图谱，牺牲查询性能，换取部署简便性
+- **权衡**：使用LlamaIndex PropertyGraphIndex + JSON文件存储，牺牲图查询性能，换取部署简便性
 
-#### 方案C：在线学习（用户反馈实时更新模型）
+#### 方案D：在线学习（用户反馈实时更新模型）
 - **原因**：5小时内无法实现，且赛题未要求
 - **权衡**：使用静态整合决策，牺牲动态优化能力
 
 ### 5.2 已知局限
 
 #### 局限1：单Agent单点故障
-- **问题**：一个模块出错影响全局
-- **缓解**：完善错误处理，每个模块独立try-catch
+- **问题**：一个节点出错可能影响整个状态机流程
+- **缓解**：
+  - LangGraph条件边实现错误重试（如MinerU失败→降级Docling）
+  - 每个节点独立try-catch，错误信息写入State
+  - Checkpoint机制支持断点恢复，失败后可从上次成功节点继续
 
 #### 局限2：LLM提取准确率依赖Prompt质量
 - **问题**：不同教材风格可能导致提取效果不一致
 - **缓解**：使用few-shot示例，提供多样化的示例覆盖不同风格
 
-#### 局限3：压缩比难以精确控制
-- **问题**：整合决策是启发式的，可能无法精确达到30%
-- **缓解**：迭代调整阈值（如相似度阈值从0.85调整到0.80），动态控制压缩比
+#### 局限3：压缩比控制精度
+- **问题**：去重是启发式的（MinHash 0.7 + BGE-M3 0.91），可能无法精确达到30%
+- **缓解**：
+  - LangGraph条件边动态调整：`if compression_ratio > 0.30: goto Deduplicate`
+  - 迭代调整dedup_threshold（0.91 → 0.89 → 0.87），直到满足30%
+  - LLMLingua检索时压缩作为最终保障
+
+#### 局限4：BGE-M3模型加载时间
+- **问题**：首次加载BGE-M3模型需要下载（约2GB）和初始化（约10秒）
+- **缓解**：
+  - 预先下载模型到本地缓存
+  - 使用`use_fp16=True`减少内存占用和加载时间
 
 ### 5.3 未来改进方向
 
@@ -381,33 +566,65 @@ def validate_citation(citation, textbook_metadata):
    - 对比不同分块策略、Embedding模型、检索策略的效果
    - 用数据驱动优化RAG pipeline
 
-2. **多Agent架构实验**
+2. **CrewAI多Agent架构实验**
    - 将知识提取、语义对齐、RAG问答拆分为独立Agent
-   - 对比单Agent vs 多Agent的性能、准确率、Token消耗
+   - 角色设计：Parser Agent（文档解析专家）、Extractor Agent（知识提取专家）、Integrator Agent（整合决策专家）、QA Agent（问答专家）
+   - 对比单Agent vs 多Agent的性能、准确率、Token消耗、开发时间
 
-3. **增量更新机制**
+3. **AntV G6可视化性能优化**
+   - 当前P0使用Cytoscape.js（适合<1000节点）
+   - P1迁移到AntV G6：WebGL渲染、GPU加速、虚拟渲染
+   - 性能对比：D3.js DOM瓶颈 vs G6 Canvas/WebGL
+
+4. **增量更新机制**
    - 新增教材时，只处理新教材，不重新处理已有教材
    - 增量更新知识图谱和向量索引
+   - LangGraph checkpoint支持增量状态恢复
 
-4. **用户反馈学习**
-   - 记录用户对整合决策的修改
-   - 训练一个小模型预测用户偏好，减少人工干预
+5. **HITL（Human-in-the-Loop）机制**
+   - 对于BGE-M3相似度在0.88-0.94之间的边界案例，标记为"需人工确认"
+   - 教师通过Web界面审核去重决策，系统记录反馈
+   - 训练小模型预测教师偏好，减少人工干预
+
+6. **CMeKG中文医学知识图谱对齐**
+   - 将提取的知识点与CMeKG（1.5M三元组）对齐
+   - 丰富关系类型（如药物-疾病、症状-诊断）
+   - 提升医学领域专业性
 
 ## 6. 总结
 
-本系统采用**模块化单Agent架构**，通过功能模块划分实现职责分离，同时保持统一的控制流程。这一设计在5小时的比赛时间约束下，平衡了开发效率、系统稳定性和功能完整性。
+本系统采用**LangGraph状态机单Agent架构**，通过显式状态管理和条件边实现流程控制，支持断点恢复和错误重试。这一设计在5小时的比赛时间约束下，平衡了开发效率、系统稳定性和功能完整性。
 
 **核心优势**：
-- 简单高效，易于开发和调试
-- 上下文统一，便于跨模块信息传递
-- 任务特定Prompt模板，降低Prompt复杂度
+- **流程控制**：条件边支持动态跳转（压缩比不达标→回退调整阈值）
+- **错误恢复**：Checkpoint机制支持断点恢复，MinerU失败自动降级Docling
+- **上下文统一**：共享State避免模块间接口耦合，便于跨节点信息传递
+- **开发高效**：2-3小时开发时间，适合5小时黑客松约束
+
+**技术栈亮点**：
+- **解析**：MinerU（中文医学PDF最佳）+ Docling备用
+- **去重**：MinHash 0.7聚类 + BGE-M3 0.91语义判断（生物医学领域阈值）
+- **压缩**：保留完整图谱 + LLMLingua检索时动态压缩到30%
+- **RAG**：BM25+FAISS混合检索 + bge-reranker-v2-m3重排 + Judge Model验证引用
+- **可视化**：Cytoscape.js (P0) → AntV G6 (P1性能优化)
 
 **适用场景**：
-- 线性任务流程
-- 中小规模数据（7本教材）
-- 时间约束下的快速开发
+- 确定性任务流程（非开放式探索）
+- 中小规模数据（7本教材，预计1000-2000知识点）
+- 时间约束下的快速开发（5小时黑客松）
+
+**与多Agent架构对比**：
+| 维度 | LangGraph单Agent | CrewAI多Agent | AutoGen对话式 |
+|------|-----------------|--------------|--------------|
+| 开发时间 | 2-3小时 | 3-4小时 | 4-5小时 |
+| 流程控制 | 显式状态机 | 角色协作 | 对话协商 |
+| 上下文管理 | 共享State | 独立上下文 | 独立上下文 |
+| 适用场景 | 确定性流程 | 角色分工明确 | 开放式探索 |
+| 调试难度 | 中 | 中 | 高 |
 
 **未来方向**：
 - 自建RAG Benchmark，数据驱动优化
-- 实验多Agent架构，对比性能差异
-- 增量更新机制，提升扩展性
+- 实验CrewAI多Agent架构，对比性能差异
+- AntV G6可视化性能优化（WebGL + GPU加速）
+- HITL机制处理边界案例（相似度0.88-0.94）
+- CMeKG对齐，提升医学领域专业性

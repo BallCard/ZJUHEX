@@ -19,18 +19,24 @@ AI全栈黑客松赛题项目 - 多教材知识整合系统
 
 **后端**
 - FastAPI - Web框架
-- PyMuPDF - PDF解析
-- sentence-transformers - 文本嵌入
-- FAISS/ChromaDB - 向量检索
-- OpenAI/Anthropic API - 大模型调用
+- **MinerU (magic-pdf)** - 中文医学PDF解析（主引擎）
+- Docling - PDF解析备用方案
+- **BGE-M3 (FlagEmbedding)** - 多向量文本嵌入（dense+sparse+multi-vector）
+- FAISS + BM25 - 混合检索（向量+关键词）
+- LlamaIndex PropertyGraphIndex - 知识图谱构建
+- LangGraph - Agent状态机编排
+- text-dedup - MinHash去重
+- LLMLingua - 动态压缩
+- 通义千问/DeepSeek - 大模型调用
 
 **前端**
-- React/Vue 3 - 前端框架
-- D3.js/ECharts - 知识图谱可视化
+- React + Ant Design - 前端框架
+- Cytoscape.js - 知识图谱可视化（P0）
+- AntV G6 - 高性能图谱可视化（P1优化）
 
 ## 环境依赖
 
-- Python 3.9+
+- **Python 3.10+** (MinerU/Docling requirement)
 - Node.js 16+
 
 ## 安装步骤
@@ -51,6 +57,9 @@ venv\Scripts\activate  # Windows
 
 # 安装依赖
 pip install -r requirements.txt
+
+# 下载BGE-M3模型（首次运行自动下载，也可预先下载）
+python -c "from FlagEmbedding import BGEM3FlagModel; BGEM3FlagModel('BAAI/bge-m3', use_fp16=True)"
 ```
 
 ### 3. 前端环境配置
