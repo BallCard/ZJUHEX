@@ -390,8 +390,18 @@ export default function App() {
 
         // Load graph
         setProgress({ status: 'processing', progress: 95, total: 100 });
+        console.log('[DEBUG] Loading graph for job:', newJobId);
         const graphRes = await apiCall(`/api/jobs/${newJobId}/graph`);
-        setGraphData(graphRes);
+        console.log('[DEBUG] Graph response:', graphRes);
+        console.log('[DEBUG] Graph data length:', graphRes?.length || 0);
+
+        if (!graphRes || graphRes.length === 0) {
+          console.error('[ERROR] Graph data is empty');
+          addToast('error', '图谱数据为空，请检查后端日志');
+        } else {
+          setGraphData(graphRes);
+          console.log('[DEBUG] Graph data set successfully');
+        }
 
         setProgress({ status: 'completed', progress: 100, total: 100 });
         addToast('success', '知识图谱构建完成！');
@@ -432,7 +442,9 @@ export default function App() {
         setActiveTab('topology');
       }
     } catch (err) {
-      addToast('error', '处理失败，请检查文件格式');
+      console.error('[ERROR] File upload workflow failed:', err);
+      const errorMessage = err instanceof Error ? err.message : '处理失败，请检查文件格式';
+      addToast('error', errorMessage);
       setProgress({ status: 'failed', progress: 0, total: 100 });
     } finally {
       setIsLoading(false);

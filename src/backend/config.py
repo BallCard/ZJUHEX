@@ -6,6 +6,11 @@ All configuration values can be overridden via environment variables.
 
 from pydantic_settings import BaseSettings
 from typing import Optional
+from pathlib import Path
+
+# Load .env from project root
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 
 class Settings(BaseSettings):
@@ -43,7 +48,6 @@ class Settings(BaseSettings):
     api_base_url: str = "http://localhost:8000"
 
     class Config:
-        env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = False
 

@@ -1,0 +1,30 @@
+# 魔搭部署依赖文件
+# 基于原requirements.txt，添加Gradio支持
+
+# Gradio界面
+gradio>=4.0.0
+
+# Core backend
+fastapi>=0.110.0
+uvicorn>=0.27.0
+python-multipart>=0.0.9
+pydantic>=2.5.0
+pydantic-settings>=2.0.0
+
+# Document parsing
+magic-pdf>=0.7.0b1
+PyMuPDF>=1.23.0
+
+# Embedding and retrieval
+sentence-transformers>=2.3.0
+faiss-cpu>=1.7.4
+
+# LLM providers
+dashscope>=1.14.0
+openai>=1.0.0
+
+# Utilities
+numpy>=1.24.0
+pandas>=2.0.0
+python-dotenv>=1.0.0
+filelock>=3.12.0
