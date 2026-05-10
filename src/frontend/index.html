@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>医学教材知识整合系统</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -222,6 +223,48 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        #graph-section {
+            margin-top: 20px;
+        }
+
+        #cy {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        #node-detail-panel {
+            margin-top: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        #node-detail-panel h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        #node-info p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        #node-info strong {
+            color: #333;
+        }
+
+        .graph-empty-hint {
+            text-align: center;
+            padding: 100px 20px;
+            color: #999;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -232,9 +275,19 @@
         <!-- Upload Section -->
         <div class="section">
             <h2>1. 上传教材</h2>
+            <div style="margin-bottom: 15px;">
+                <label style="margin-right: 20px;">
+                    <input type="radio" name="uploadMode" value="single" checked onchange="switchUploadMode()">
+                    单教材模式
+                </label>
+                <label>
+                    <input type="radio" name="uploadMode" value="multiple" onchange="switchUploadMode()">
+                    跨教材整合模式
+                </label>
+            </div>
             <div class="upload-area" onclick="document.getElementById('fileInput').click()">
                 <input type="file" id="fileInput" accept=".pdf" onchange="uploadFile()">
-                <p>点击上传PDF教材文件</p>
+                <p id="uploadHint">点击上传PDF教材文件</p>
                 <p style="color: #999; font-size: 14px; margin-top: 10px;">支持格式: PDF</p>
             </div>
             <div id="uploadStatus"></div>
@@ -276,6 +329,18 @@
             </div>
         </div>
 
+        <!-- Graph Visualization Section -->
+        <div class="section" id="graph-section" style="display:none;">
+            <h2>3.5 知识图谱可视化</h2>
+            <div id="graph-container">
+                <div id="cy"></div>
+            </div>
+            <div id="node-detail-panel" style="display:none;">
+                <h3>节点详情</h3>
+                <div id="node-info"></div>
+            </div>
+        </div>
+
         <!-- Report Section -->
         <div class="section">
             <h2>4. 整合报告</h2>
@@ -295,6 +360,28 @@
     <script>
         const API_BASE = 'http://localhost:8000';
         let currentJobId = null;
+        let uploadMode = 'single'; // 'single' or 'multiple'
+
+        function switchUploadMode() {
+            const mode = document.querySelector('input[name="uploadMode"]:checked').value;
+            uploadMode = mode;
+
+            const fileInput = document.getElementById('fileInput');
+            const uploadHint = document.getElementById('uploadHint');
+
+            if (mode === 'multiple') {
+                fileInput.setAttribute('multiple', 'multiple');
+                uploadHint.textContent = '点击上传多个PDF教材文件（支持多选）';
+            } else {
+                fileInput.removeAttribute('multiple');
+                uploadHint.textContent = '点击上传PDF教材文件';
+            }
+
+            // Reset upload status
+            document.getElementById('uploadStatus').innerHTML = '';
+            currentJobId = null;
+            document.getElementById('runPipelineBtn').disabled = true;
+        }
 
         function showStatus(elementId, message, type = 'info') {
             const el = document.getElementById(elementId);
@@ -303,28 +390,56 @@
 
         async function uploadFile() {
             const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
+            const files = fileInput.files;
 
-            if (!file) return;
+            if (!files || files.length === 0) return;
 
             showStatus('uploadStatus', '上传中...', 'info');
 
             const formData = new FormData();
-            formData.append('file', file);
 
-            try {
-                const response = await fetch(`${API_BASE}/api/upload`, {
-                    method: 'POST',
-                    body: formData
-                });
+            if (uploadMode === 'multiple') {
+                // Multiple files upload
+                for (let i = 0; i < files.length; i++) {
+                    formData.append('files', files[i]);
+                }
 
-                const data = await response.json();
-                currentJobId = data.job_id;
+                try {
+                    const response = await fetch(`${API_BASE}/api/upload_multiple`, {
+                        method: 'POST',
+                        body: formData
+                    });
 
-                showStatus('uploadStatus', `上传成功！Job ID: ${currentJobId}`, 'success');
-                document.getElementById('runPipelineBtn').disabled = false;
-            } catch (error) {
-                showStatus('uploadStatus', `上传失败: ${error.message}`, 'error');
+                    const data = await response.json();
+                    currentJobId = data.job_id;
+
+                    showStatus('uploadStatus',
+                        `上传成功！已上传 ${data.textbook_count} 本教材<br>Job ID: ${currentJobId}`,
+                        'success');
+                    document.getElementById('runPipelineBtn').disabled = false;
+                    document.getElementById('runPipelineBtn').textContent = '运行跨教材整合流水线';
+                } catch (error) {
+                    showStatus('uploadStatus', `上传失败: ${error.message}`, 'error');
+                }
+            } else {
+                // Single file upload
+                formData.append('file', files[0]);
+
+                try {
+                    const response = await fetch(`${API_BASE}/api/upload`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    currentJobId = data.job_id;
+
+                    showStatus('uploadStatus', `上传成功！Job ID: ${currentJobId}`, 'success');
+                    document.getElementById('runPipelineBtn').disabled = false;
+                    document.getElementById('runPipelineBtn').textContent = '运行整合流水线';
+                } catch (error) {
+                    showStatus('uploadStatus', `上传失败: ${error.message}`, 'error');
+                }
             }
         }
 
@@ -332,6 +447,15 @@
             if (!currentJobId) return;
 
             document.getElementById('runPipelineBtn').disabled = true;
+
+            if (uploadMode === 'multiple') {
+                await runCrossTextbookPipeline();
+            } else {
+                await runSingleTextbookPipeline();
+            }
+        }
+
+        async function runSingleTextbookPipeline() {
             showStatus('pipelineStatus', '启动流水线... <span class="loading"></span>', 'info');
             document.getElementById('progressText').textContent = '准备中...';
 
@@ -403,6 +527,18 @@
                         // Update stats based on phase
                         if (phase.name === 'parse' && data.total_chars) {
                             document.getElementById('originalChars').textContent = data.total_chars.toLocaleString();
+                        } else if (phase.name === 'integrate') {
+                            // Fetch and render graph after integration
+                            try {
+                                const graphResp = await fetch(`${API_BASE}/api/graph/${currentJobId}`);
+                                const graphData = await graphResp.json();
+                                if (graphResp.ok && graphData.nodes) {
+                                    renderGraph(graphData);
+                                    document.getElementById('nodesCount').textContent = graphData.nodes.length;
+                                }
+                            } catch (err) {
+                                console.error('Failed to load graph:', err);
+                            }
                         } else if (phase.name === 'generate_report' && data.compression_ratio) {
                             document.getElementById('compressionRatio').textContent = `${data.compression_ratio.toFixed(2)}%`;
                             document.getElementById('viewReportBtn').disabled = false;
@@ -426,11 +562,122 @@
             document.getElementById('ragQueryBtn').disabled = false;
         }
 
+        async function runCrossTextbookPipeline() {
+            showStatus('pipelineStatus', '启动跨教材整合流水线... <span class="loading"></span>', 'info');
+            document.getElementById('progressText').textContent = '准备中...';
+
+            const phases = [
+                { name: 'parse_multiple', label: '解析所有教材', endpoint: `/api/parse_multiple/${currentJobId}` },
+                { name: 'build_graphs', label: '构建知识图谱', endpoint: `/api/build_graphs_multiple/${currentJobId}` },
+                { name: 'cross_integrate', label: '跨教材整合', endpoint: `/api/cross_integrate/${currentJobId}` }
+            ];
+
+            for (let i = 0; i < phases.length; i++) {
+                const phase = phases[i];
+                const progressPercent = ((i + 1) / phases.length * 100);
+
+                showStatus('pipelineStatus', `${phase.label}中... <span class="loading"></span>`, 'info');
+                document.getElementById('progressText').textContent = `${phase.label} (${i + 1}/${phases.length})`;
+                document.getElementById('progressFill').style.width = `${progressPercent}%`;
+
+                try {
+                    if (phase.name === 'build_graphs') {
+                        // Start async graph building
+                        const response = await fetch(`${API_BASE}${phase.endpoint}`, { method: 'POST' });
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.detail || `HTTP ${response.status}`);
+                        }
+
+                        // Poll for completion
+                        await new Promise((resolve, reject) => {
+                            const pollInterval = setInterval(async () => {
+                                try {
+                                    const progressResp = await fetch(`${API_BASE}/api/jobs/${currentJobId}/progress`);
+                                    const progressData = await progressResp.json();
+
+                                    if (progressData.status === 'graphs_built') {
+                                        clearInterval(pollInterval);
+                                        resolve();
+                                    } else if (progressData.status === 'failed' || progressData.status === 'partially_failed') {
+                                        clearInterval(pollInterval);
+                                        reject(new Error(progressData.error || '知识图谱构建失败'));
+                                    }
+                                } catch (err) {
+                                    clearInterval(pollInterval);
+                                    reject(err);
+                                }
+                            }, 3000);
+                        });
+                    } else {
+                        // Simple POST request
+                        const response = await fetch(`${API_BASE}${phase.endpoint}`, { method: 'POST' });
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.detail || `HTTP ${response.status}`);
+                        }
+
+                        // Update stats
+                        if (phase.name === 'parse_multiple' && data.total_chunks) {
+                            document.getElementById('originalChars').textContent = data.total_chunks.toLocaleString();
+                        } else if (phase.name === 'cross_integrate') {
+                            document.getElementById('nodesCount').textContent = data.merged_nodes;
+                            const dedupRatio = (1 - data.deduplication_ratio) * 100;
+                            document.getElementById('compressionRatio').textContent = `${dedupRatio.toFixed(2)}%`;
+
+                            // Fetch and render cross-textbook graph
+                            try {
+                                const graphResp = await fetch(`${API_BASE}/api/cross_graph/${currentJobId}`);
+                                const graphData = await graphResp.json();
+                                if (graphResp.ok && graphData.nodes) {
+                                    renderGraph(graphData);
+                                }
+                            } catch (err) {
+                                console.error('Failed to load cross-textbook graph:', err);
+                            }
+
+                            // Enable view report button (use cross-textbook report)
+                            document.getElementById('viewReportBtn').disabled = false;
+                            document.getElementById('viewReportBtn').onclick = viewCrossTextbookReport;
+                        }
+                    }
+
+                    showStatus('pipelineStatus', `${phase.label}完成`, 'success');
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                } catch (error) {
+                    showStatus('pipelineStatus', `${phase.label}失败: ${error.message}`, 'error');
+                    document.getElementById('progressText').textContent = '失败';
+                    document.getElementById('runPipelineBtn').disabled = false;
+                    return;
+                }
+            }
+
+            showStatus('pipelineStatus', '跨教材整合流水线完成！', 'success');
+            document.getElementById('progressText').textContent = '完成';
+            document.getElementById('progressFill').style.width = '100%';
+        }
+
         async function viewReport() {
             if (!currentJobId) return;
 
             try {
                 const response = await fetch(`${API_BASE}/api/report/${currentJobId}`);
+                const data = await response.json();
+
+                document.getElementById('reportContent').textContent = data.content;
+                document.getElementById('reportContent').style.display = 'block';
+            } catch (error) {
+                alert(`查看报告失败: ${error.message}`);
+            }
+        }
+
+        async function viewCrossTextbookReport() {
+            if (!currentJobId) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/cross_report/${currentJobId}`);
                 const data = await response.json();
 
                 document.getElementById('reportContent').textContent = data.content;
@@ -483,6 +730,125 @@
             } finally {
                 document.getElementById('ragQueryBtn').disabled = false;
             }
+        }
+
+        function renderGraph(graphData) {
+            if (!graphData || !graphData.nodes || graphData.nodes.length === 0) {
+                document.getElementById('cy').innerHTML = '<div class="graph-empty-hint">暂无图谱数据</div>';
+                document.getElementById('graph-section').style.display = 'block';
+                return;
+            }
+
+            // Convert data format for Cytoscape
+            const elements = {
+                nodes: graphData.nodes.map(node => ({
+                    data: {
+                        id: node.id,
+                        label: node.label,
+                        definition: node.definition || '无定义',
+                        source_page: node.source_page || '未知',
+                        textbook: node.textbook || '未知教材'
+                    }
+                })),
+                edges: graphData.edges.map(edge => ({
+                    data: {
+                        id: edge.id,
+                        source: edge.source,
+                        target: edge.target,
+                        relation: edge.relation || '相关'
+                    }
+                }))
+            };
+
+            // Initialize Cytoscape
+            const cy = cytoscape({
+                container: document.getElementById('cy'),
+                elements: elements,
+                style: [
+                    {
+                        selector: 'node',
+                        style: {
+                            'background-color': '#667eea',
+                            'label': 'data(label)',
+                            'color': '#fff',
+                            'text-valign': 'center',
+                            'text-halign': 'center',
+                            'font-size': '12px',
+                            'font-weight': 'bold',
+                            'width': '60px',
+                            'height': '60px',
+                            'text-wrap': 'wrap',
+                            'text-max-width': '80px'
+                        }
+                    },
+                    {
+                        selector: 'node:selected',
+                        style: {
+                            'background-color': '#764ba2',
+                            'border-width': 3,
+                            'border-color': '#fff'
+                        }
+                    },
+                    {
+                        selector: 'edge',
+                        style: {
+                            'width': 2,
+                            'line-color': '#ccc',
+                            'target-arrow-color': '#ccc',
+                            'target-arrow-shape': 'triangle',
+                            'curve-style': 'bezier',
+                            'label': 'data(relation)',
+                            'font-size': '10px',
+                            'color': '#666',
+                            'text-background-color': '#fff',
+                            'text-background-opacity': 0.8,
+                            'text-background-padding': '3px'
+                        }
+                    }
+                ],
+                layout: {
+                    name: 'cose',
+                    animate: true,
+                    animationDuration: 500,
+                    nodeRepulsion: 8000,
+                    idealEdgeLength: 100,
+                    edgeElasticity: 100,
+                    nestingFactor: 5,
+                    gravity: 80,
+                    numIter: 1000,
+                    initialTemp: 200,
+                    coolingFactor: 0.95,
+                    minTemp: 1.0
+                }
+            });
+
+            // Node click event
+            cy.on('tap', 'node', (evt) => {
+                showNodeDetail(evt.target.data());
+            });
+
+            // Background click to hide detail panel
+            cy.on('tap', (evt) => {
+                if (evt.target === cy) {
+                    document.getElementById('node-detail-panel').style.display = 'none';
+                }
+            });
+
+            // Show graph section
+            document.getElementById('graph-section').style.display = 'block';
+        }
+
+        function showNodeDetail(nodeData) {
+            const panel = document.getElementById('node-detail-panel');
+            const info = document.getElementById('node-info');
+
+            info.innerHTML = `
+                <p><strong>名称：</strong>${nodeData.label}</p>
+                <p><strong>定义：</strong>${nodeData.definition}</p>
+                <p><strong>来源：</strong>${nodeData.textbook} 第${nodeData.source_page}页</p>
+            `;
+
+            panel.style.display = 'block';
         }
     </script>
 </body>

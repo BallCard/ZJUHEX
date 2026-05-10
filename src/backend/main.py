@@ -30,6 +30,7 @@ from services.report_generator import generate_integration_report
 from services.rag import RAGPipeline
 from services.content_detector import ContentDetector
 from services.async_extractor import AsyncExtractor
+from services.cross_textbook_integration import CrossTextbookIntegrator
 
 # Import unified paths
 from utils.paths import get_job_dir, REPORT_DIR, ensure_directories
@@ -363,6 +364,10 @@ async def build_graph(job_id: str, background_tasks: BackgroundTasks, max_chunks
         job_id: Job identifier
         message: Status message
     """
+    # Validate chapter_num
+    if chapter_num < 1 or chapter_num > 100:
+        raise HTTPException(status_code=400, detail=f"Invalid chapter_num: {chapter_num}. Must be between 1 and 100.")
+
     # Verify job exists
     load_job_state(job_id)
 
@@ -633,6 +638,529 @@ def get_report(job_id: str):
     return {
         "job_id": job_id,
         "content": content
+    }
+
+
+@app.get("/api/graph/{job_id}")
+def get_graph(job_id: str):
+    """
+    Get deduplicated knowledge graph for visualization.
+
+    Args:
+        job_id: Job identifier
+
+    Returns:
+        Knowledge graph with nodes and edges
+    """
+    # Try to load deduplicated graph first, fallback to original graph
+    dedup_path = get_job_dir(job_id) / "deduplicated_graph.json"
+    graph_path = get_job_dir(job_id) / "knowledge_graph.json"
+
+    if dedup_path.exists():
+        with open(dedup_path, 'r', encoding='utf-8') as f:
+            graph = json.load(f)
+    elif graph_path.exists():
+        with open(graph_path, 'r', encoding='utf-8') as f:
+            graph = json.load(f)
+    else:
+        raise HTTPException(status_code=404, detail="Knowledge graph not found")
+
+    # Load chunks to get textbook name
+    chunks_path = get_job_dir(job_id) / "parsed_chunks.json"
+    textbook_name = "未知教材"
+    if chunks_path.exists():
+        with open(chunks_path, 'r', encoding='utf-8') as f:
+            chunks = json.load(f)
+            if chunks:
+                textbook_name = chunks[0].get("textbook", "未知教材")
+
+    # Enrich nodes with textbook and page info
+    enriched_nodes = []
+    for node in graph.get("nodes", []):
+        enriched_node = node.copy()
+        enriched_node["textbook"] = textbook_name
+
+        # Get page from source_chunks if available
+        if "source_chunks" in node and node["source_chunks"]:
+            chunk_id = node["source_chunks"][0]
+            # Find chunk by id
+            if chunks_path.exists():
+                chunk = next((c for c in chunks if c.get("chunk_id") == chunk_id), None)
+                if chunk:
+                    enriched_node["source_page"] = chunk.get("page", "未知")
+
+        if "source_page" not in enriched_node:
+            enriched_node["source_page"] = "未知"
+
+        enriched_nodes.append(enriched_node)
+
+    # Format edges for Cytoscape (add unique IDs)
+    enriched_edges = []
+    for i, edge in enumerate(graph.get("edges", [])):
+        enriched_edge = edge.copy()
+        if "id" not in enriched_edge:
+            enriched_edge["id"] = f"edge_{i}"
+        enriched_edges.append(enriched_edge)
+
+    return {
+        "nodes": enriched_nodes,
+        "edges": enriched_edges,
+        "metadata": graph.get("metadata", {})
+    }
+
+
+@app.post("/api/upload_multiple")
+async def upload_multiple_textbooks(files: List[UploadFile] = File(...)):
+    """
+    Upload multiple textbook files for cross-textbook integration.
+
+    Args:
+        files: List of uploaded files
+
+    Returns:
+        job_id: Unique job identifier
+        textbook_count: Number of textbooks uploaded
+        textbooks: List of textbook info
+    """
+    if not files:
+        raise HTTPException(status_code=400, detail="No files uploaded")
+
+    # Generate job ID
+    job_id = str(uuid.uuid4())[:8]
+
+    # Create job directory
+    job_dir = get_job_dir(job_id)
+    job_dir.mkdir(parents=True, exist_ok=True)
+
+    # Save all uploaded files
+    textbook_info = []
+    for i, file in enumerate(files):
+        # Sanitize filename
+        safe_filename = Path(file.filename).name
+        textbook_id = f"textbook_{i}"
+        file_path = job_dir / f"{textbook_id}_{safe_filename}"
+
+        with open(file_path, 'wb') as f:
+            content = await file.read()
+            f.write(content)
+
+        textbook_info.append({
+            'textbook_id': textbook_id,
+            'filename': safe_filename,
+            'file_path': str(file_path)
+        })
+
+    # Initialize job state
+    state = {
+        "job_id": job_id,
+        "status": "uploaded",
+        "current_phase": "upload",
+        "mode": "cross_textbook",
+        "textbook_count": len(files),
+        "textbooks": textbook_info,
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat()
+    }
+    save_job_state(job_id, state)
+
+    return {
+        "job_id": job_id,
+        "textbook_count": len(files),
+        "textbooks": [{"textbook_id": t["textbook_id"], "filename": t["filename"]} for t in textbook_info],
+        "message": f"{len(files)} textbooks uploaded successfully"
+    }
+
+
+@app.post("/api/parse_multiple/{job_id}")
+def parse_multiple_documents(job_id: str):
+    """
+    Parse multiple uploaded textbooks.
+
+    Args:
+        job_id: Job identifier
+
+    Returns:
+        textbooks_parsed: Number of textbooks parsed
+        total_chunks: Total chunks across all textbooks
+    """
+    # Load job state
+    state = load_job_state(job_id)
+
+    if state.get("mode") != "cross_textbook":
+        raise HTTPException(status_code=400, detail="Job is not in cross-textbook mode")
+
+    textbooks = state.get("textbooks", [])
+    all_chunks_by_textbook = {}
+    total_chunks = 0
+
+    # Parse each textbook
+    for textbook in textbooks:
+        textbook_id = textbook["textbook_id"]
+        file_path = textbook["file_path"]
+
+        print(f"[INFO] Parsing {textbook['filename']}...")
+        chunks = parse_textbook(file_path)
+
+        # Add textbook metadata to each chunk
+        for chunk in chunks:
+            chunk["textbook_id"] = textbook_id
+            chunk["textbook_name"] = textbook["filename"]
+
+        # Save chunks for this textbook
+        chunks_path = get_job_dir(job_id) / f"{textbook_id}_chunks.json"
+        with open(chunks_path, 'w', encoding='utf-8') as f:
+            json.dump(chunks, f, ensure_ascii=False, indent=2)
+
+        all_chunks_by_textbook[textbook_id] = {
+            "filename": textbook["filename"],
+            "chunks_count": len(chunks),
+            "chunks_path": str(chunks_path)
+        }
+        total_chunks += len(chunks)
+
+    # Update state
+    update_job_state(job_id, {
+        "status": "parsed",
+        "current_phase": "parse",
+        "total_chunks": total_chunks,
+        "chunks_by_textbook": all_chunks_by_textbook
+    })
+
+    return {
+        "job_id": job_id,
+        "textbooks_parsed": len(textbooks),
+        "total_chunks": total_chunks,
+        "chunks_by_textbook": all_chunks_by_textbook,
+        "message": "All textbooks parsed successfully"
+    }
+
+
+def build_graph_for_textbook(job_id: str, textbook_id: str, textbook_info: dict, chapter_num: int = 1):
+    """
+    Build knowledge graph for a single textbook in cross-textbook mode.
+
+    Args:
+        job_id: Job identifier
+        textbook_id: Textbook identifier
+        textbook_info: Textbook metadata
+        chapter_num: Chapter number to process
+    """
+    try:
+        print(f"[INFO] Building graph for {textbook_info['filename']}...")
+
+        # Load chunks for this textbook
+        chunks_path = get_job_dir(job_id) / f"{textbook_id}_chunks.json"
+        with open(chunks_path, 'r', encoding='utf-8') as f:
+            chunks = json.load(f)
+
+        # Use ContentDetector to select chapter
+        detector = ContentDetector()
+        content_start_idx = detector.detect_content_start(chunks)
+        content_chunks = chunks[content_start_idx:]
+        chapter_chunks = detector.select_chapter(content_chunks, chapter_num=chapter_num)
+
+        # Use AsyncExtractor for batch extraction
+        extractor = AsyncExtractor(job_id)
+        extraction_results = extractor.extract_batch(chapter_chunks)
+
+        # Build graph from extraction results
+        nodes = []
+        edges = []
+        node_id_counter = 0
+
+        for result in extraction_results["results"]:
+            if result.get("status") != "success":
+                continue
+
+            chunk_id = result["chunk_id"]
+
+            # Add nodes
+            for concept in result.get("concepts", []):
+                nodes.append({
+                    "id": f"{textbook_id}_node_{node_id_counter}",
+                    "label": concept["name"],
+                    "type": concept.get("type", "concept"),
+                    "definition": concept.get("definition", ""),
+                    "source_chunks": [chunk_id]
+                })
+                node_id_counter += 1
+
+            # Add edges
+            for relation in result.get("relationships", []):
+                source_node = next((n for n in nodes if n["label"] == relation["source"]), None)
+                target_node = next((n for n in nodes if n["label"] == relation["target"]), None)
+
+                if source_node and target_node:
+                    edges.append({
+                        "source": source_node["id"],
+                        "target": target_node["id"],
+                        "relation": relation["type"],
+                        "description": relation.get("description", "")
+                    })
+
+        # Build graph structure
+        graph = {
+            "nodes": nodes,
+            "edges": edges,
+            "metadata": {
+                "textbook_id": textbook_id,
+                "textbook_name": textbook_info["filename"],
+                "total_nodes": len(nodes),
+                "total_edges": len(edges),
+                "chunks_processed": extraction_results["success_count"]
+            }
+        }
+
+        # Save graph for this textbook
+        graph_path = get_job_dir(job_id) / f"{textbook_id}_graph.json"
+        with open(graph_path, 'w', encoding='utf-8') as f:
+            json.dump(graph, f, ensure_ascii=False, indent=2)
+
+        print(f"[INFO] Graph built for {textbook_info['filename']}: {len(nodes)} nodes, {len(edges)} edges")
+
+        return {
+            "textbook_id": textbook_id,
+            "status": "success",
+            "nodes_count": len(nodes),
+            "edges_count": len(edges)
+        }
+
+    except Exception as e:
+        print(f"[ERROR] Failed to build graph for {textbook_id}: {e}")
+        return {
+            "textbook_id": textbook_id,
+            "status": "failed",
+            "error": str(e)
+        }
+
+
+@app.post("/api/build_graphs_multiple/{job_id}")
+async def build_graphs_multiple(job_id: str, background_tasks: BackgroundTasks, chapter_num: int = 1):
+    """
+    Build knowledge graphs for all textbooks in cross-textbook mode.
+
+    Args:
+        job_id: Job identifier
+        background_tasks: FastAPI background tasks
+        chapter_num: Chapter number to process (default=1)
+
+    Returns:
+        status: "processing"
+        job_id: Job identifier
+        textbook_count: Number of textbooks to process
+    """
+    # Validate chapter_num
+    if chapter_num < 1 or chapter_num > 100:
+        raise HTTPException(status_code=400, detail=f"Invalid chapter_num: {chapter_num}. Must be between 1 and 100.")
+
+    # Load job state
+    state = load_job_state(job_id)
+
+    if state.get("mode") != "cross_textbook":
+        raise HTTPException(status_code=400, detail="Job is not in cross-textbook mode")
+
+    textbooks = state.get("textbooks", [])
+
+    # Build graphs for all textbooks sequentially (in background)
+    def build_all_graphs():
+        try:
+            update_job_state(job_id, {
+                "status": "processing",
+                "current_phase": "build_graphs"
+            })
+
+            results = []
+            for textbook in textbooks:
+                result = build_graph_for_textbook(
+                    job_id,
+                    textbook["textbook_id"],
+                    textbook,
+                    chapter_num
+                )
+                results.append(result)
+
+            # Check if all succeeded
+            all_success = all(r["status"] == "success" for r in results)
+
+            if all_success:
+                update_job_state(job_id, {
+                    "status": "graphs_built",
+                    "current_phase": "build_graphs",
+                    "graph_results": results
+                })
+            else:
+                update_job_state(job_id, {
+                    "status": "partially_failed",
+                    "current_phase": "build_graphs",
+                    "graph_results": results,
+                    "error": "Some textbooks failed to build graphs"
+                })
+
+        except Exception as e:
+            update_job_state(job_id, {
+                "status": "failed",
+                "current_phase": "build_graphs",
+                "error": str(e)
+            })
+
+    background_tasks.add_task(build_all_graphs)
+
+    return {
+        "status": "processing",
+        "job_id": job_id,
+        "textbook_count": len(textbooks),
+        "message": "Building knowledge graphs for all textbooks. Use /api/jobs/{job_id}/progress to check progress."
+    }
+
+
+@app.post("/api/cross_integrate/{job_id}")
+def cross_integrate_textbooks(job_id: str):
+    """
+    Perform cross-textbook knowledge integration.
+
+    Args:
+        job_id: Job identifier
+
+    Returns:
+        original_nodes: Total original nodes across all textbooks
+        merged_nodes: Merged nodes after cross-textbook deduplication
+        textbook_count: Number of textbooks integrated
+    """
+    # Load job state
+    state = load_job_state(job_id)
+
+    if state.get("mode") != "cross_textbook":
+        raise HTTPException(status_code=400, detail="Job is not in cross-textbook mode")
+
+    textbooks = state.get("textbooks", [])
+
+    # Load all knowledge graphs
+    graphs = []
+    for textbook in textbooks:
+        textbook_id = textbook["textbook_id"]
+        graph_path = get_job_dir(job_id) / f"{textbook_id}_graph.json"
+
+        if not graph_path.exists():
+            raise HTTPException(
+                status_code=400,
+                detail=f"Knowledge graph not found for {textbook['filename']}. Please build graphs first."
+            )
+
+        with open(graph_path, 'r', encoding='utf-8') as f:
+            graph = json.load(f)
+            graphs.append(graph)
+
+    print(f"[INFO] Loaded {len(graphs)} knowledge graphs for cross-textbook integration")
+
+    # Perform cross-textbook integration
+    integrator = CrossTextbookIntegrator(similarity_threshold=0.90)
+    aligned_graph = integrator.align_knowledge_graphs(graphs)
+
+    # Save aligned graph
+    aligned_path = get_job_dir(job_id) / "cross_integrated_graph.json"
+    with open(aligned_path, 'w', encoding='utf-8') as f:
+        json.dump(aligned_graph, f, ensure_ascii=False, indent=2)
+
+    # Generate cross-textbook report
+    report_content = integrator.generate_cross_textbook_report(aligned_graph, graphs)
+    report_path = REPORT_DIR / f"跨教材整合报告_{job_id}.md"
+    report_path.write_text(report_content, encoding='utf-8')
+
+    # Update state
+    metadata = aligned_graph.get("metadata", {})
+    update_job_state(job_id, {
+        "status": "cross_integrated",
+        "current_phase": "cross_integrate",
+        "original_nodes": metadata.get("original_node_count", 0),
+        "merged_nodes": metadata.get("merged_node_count", 0),
+        "deduplication_ratio": metadata.get("deduplication_ratio", 1.0),
+        "report_path": str(report_path)
+    })
+
+    return {
+        "job_id": job_id,
+        "textbook_count": len(graphs),
+        "original_nodes": metadata.get("original_node_count", 0),
+        "merged_nodes": metadata.get("merged_node_count", 0),
+        "deduplication_ratio": metadata.get("deduplication_ratio", 1.0),
+        "report_path": str(report_path),
+        "message": "Cross-textbook integration completed successfully"
+    }
+
+
+@app.get("/api/cross_report/{job_id}")
+def get_cross_textbook_report(job_id: str):
+    """
+    Get cross-textbook integration report content.
+
+    Args:
+        job_id: Job identifier
+
+    Returns:
+        Report content as text
+    """
+    report_path = REPORT_DIR / f"跨教材整合报告_{job_id}.md"
+
+    if not report_path.exists():
+        raise HTTPException(status_code=404, detail="Cross-textbook report not found")
+
+    with open(report_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    return {
+        "job_id": job_id,
+        "content": content
+    }
+
+
+@app.get("/api/cross_graph/{job_id}")
+def get_cross_textbook_graph(job_id: str):
+    """
+    Get cross-textbook integrated knowledge graph for visualization.
+
+    Args:
+        job_id: Job identifier
+
+    Returns:
+        Knowledge graph with nodes and edges
+    """
+    # Load cross-integrated graph
+    graph_path = get_job_dir(job_id) / "cross_integrated_graph.json"
+
+    if not graph_path.exists():
+        raise HTTPException(status_code=404, detail="Cross-textbook integrated graph not found")
+
+    with open(graph_path, 'r', encoding='utf-8') as f:
+        graph = json.load(f)
+
+    # Enrich nodes with source information
+    enriched_nodes = []
+    for node in graph.get("nodes", []):
+        enriched_node = node.copy()
+
+        # Add textbook sources
+        sources = node.get("sources", [])
+        if sources:
+            enriched_node["textbook_names"] = [s.get("textbook_name", "未知") for s in sources]
+            enriched_node["textbook_count"] = node.get("textbook_count", len(sources))
+        else:
+            enriched_node["textbook_names"] = [node.get("textbook_name", "未知")]
+            enriched_node["textbook_count"] = 1
+
+        enriched_nodes.append(enriched_node)
+
+    # Format edges for Cytoscape
+    enriched_edges = []
+    for i, edge in enumerate(graph.get("edges", [])):
+        enriched_edge = edge.copy()
+        if "id" not in enriched_edge:
+            enriched_edge["id"] = f"edge_{i}"
+        enriched_edges.append(enriched_edge)
+
+    return {
+        "nodes": enriched_nodes,
+        "edges": enriched_edges,
+        "metadata": graph.get("metadata", {})
     }
 
 

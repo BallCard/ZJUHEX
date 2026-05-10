@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图谱可视化测试</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+        }
+        h1 {
+            color: #667eea;
+        }
+        #cy {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+            margin: 20px 0;
+        }
+        #node-detail {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>图谱可视化功能测试</h1>
+        <p>测试Cytoscape.js集成和交互功能</p>
+
+        <button class="btn" onclick="loadTestData()">加载测试数据</button>
+        <button class="btn" onclick="clearGraph()">清空图谱</button>
+
+        <div id="cy"></div>
+
+        <div id="node-detail">
+            <h3>节点详情</h3>
+            <div id="node-info"></div>
+        </div>
+    </div>
+
+    <script>
+        let cy = null;
+
+        function loadTestData() {
+            const testData = {
+                nodes: [
+                    {id: "n1", label: "细胞膜", definition: "细胞的外层结构，具有选择透过性", textbook: "生理学", source_page: 15},
+                    {id: "n2", label: "细胞质", definition: "细胞膜与细胞核之间的物质", textbook: "生理学", source_page: 16},
+                    {id: "n3", label: "细胞核", definition: "细胞的控制中心，含有遗传物质", textbook: "生理学", source_page: 17},
+                    {id: "n4", label: "线粒体", definition: "细胞的能量工厂", textbook: "生理学", source_page: 18},
+                    {id: "n5", label: "内质网", definition: "细胞内的运输系统", textbook: "生理学", source_page: 19}
+                ],
+                edges: [
+                    {id: "e1", source: "n1", target: "n2", relation: "包含"},
+                    {id: "e2", source: "n2", target: "n3", relation: "包含"},
+                    {id: "e3", source: "n2", target: "n4", relation: "包含"},
+                    {id: "e4", source: "n2", target: "n5", relation: "包含"},
+                    {id: "e5", source: "n4", target: "n5", relation: "相关"}
+                ]
+            };
+
+            renderGraph(testData);
+        }
+
+        function renderGraph(graphData) {
+            if (!graphData || !graphData.nodes || graphData.nodes.length === 0) {
+                document.getElementById('cy').innerHTML = '<div style="text-align:center;padding:100px;color:#999;">暂无图谱数据</div>';
+                return;
+            }
+
+            const elements = {
+                nodes: graphData.nodes.map(node => ({
+                    data: {
+                        id: node.id,
+                        label: node.label,
+                        definition: node.definition || '无定义',
+                        source_page: node.source_page || '未知',
+                        textbook: node.textbook || '未知教材'
+                    }
+                })),
+                edges: graphData.edges.map(edge => ({
+                    data: {
+                        id: edge.id,
+                        source: edge.source,
+                        target: edge.target,
+                        relation: edge.relation || '相关'
+                    }
+                }))
+            };
+
+            cy = cytoscape({
+                container: document.getElementById('cy'),
+                elements: elements,
+                style: [
+                    {
+                        selector: 'node',
+                        style: {
+                            'background-color': '#667eea',
+                            'label': 'data(label)',
+                            'color': '#fff',
+                            'text-valign': 'center',
+                            'text-halign': 'center',
+                            'font-size': '12px',
+                            'font-weight': 'bold',
+                            'width': '60px',
+                            'height': '60px',
+                            'text-wrap': 'wrap',
+                            'text-max-width': '80px'
+                        }
+                    },
+                    {
+                        selector: 'node:selected',
+                        style: {
+                            'background-color': '#764ba2',
+                            'border-width': 3,
+                            'border-color': '#fff'
+                        }
+                    },
+                    {
+                        selector: 'edge',
+                        style: {
+                            'width': 2,
+                            'line-color': '#ccc',
+                            'target-arrow-color': '#ccc',
+                            'target-arrow-shape': 'triangle',
+                            'curve-style': 'bezier',
+                            'label': 'data(relation)',
+                            'font-size': '10px',
+                            'color': '#666',
+                            'text-background-color': '#fff',
+                            'text-background-opacity': 0.8,
+                            'text-background-padding': '3px'
+                        }
+                    }
+                ],
+                layout: {
+                    name: 'cose',
+                    animate: true,
+                    animationDuration: 500,
+                    nodeRepulsion: 8000,
+                    idealEdgeLength: 100,
+                    edgeElasticity: 100,
+                    nestingFactor: 5,
+                    gravity: 80,
+                    numIter: 1000,
+                    initialTemp: 200,
+                    coolingFactor: 0.95,
+                    minTemp: 1.0
+                }
+            });
+
+            cy.on('tap', 'node', (evt) => {
+                showNodeDetail(evt.target.data());
+            });
+
+            cy.on('tap', (evt) => {
+                if (evt.target === cy) {
+                    document.getElementById('node-detail').style.display = 'none';
+                }
+            });
+        }
+
+        function showNodeDetail(nodeData) {
+            const panel = document.getElementById('node-detail');
+            const info = document.getElementById('node-info');
+
+            info.innerHTML = `
+                <p><strong>名称：</strong>${nodeData.label}</p>
+                <p><strong>定义：</strong>${nodeData.definition}</p>
+                <p><strong>来源：</strong>${nodeData.textbook} 第${nodeData.source_page}页</p>
+            `;
+
+            panel.style.display = 'block';
+        }
+
+        function clearGraph() {
+            if (cy) {
+                cy.destroy();
+                cy = null;
+            }
+            document.getElementById('cy').innerHTML = '';
+            document.getElementById('node-detail').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

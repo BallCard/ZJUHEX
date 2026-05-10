@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from datetime import datetime
+from filelock import FileLock, Timeout
 
 from services.knowledge_graph import KnowledgeGraphBuilder
 from utils.paths import RUNTIME_DIR
@@ -153,29 +154,38 @@ class AsyncExtractor:
 
     def _update_progress(self, current: int, total: int):
         """
-        Update extraction progress in job state.
+        Update extraction progress in job state with file locking.
 
         Args:
             current: Current progress
             total: Total items
         """
         state_path = RUNTIME_DIR / self.job_id / "state.json"
+        lock_path = state_path.with_suffix('.lock')
 
-        # Load existing state
-        if state_path.exists():
-            with open(state_path, 'r', encoding='utf-8') as f:
-                state = json.load(f)
-        else:
-            state = {}
+        try:
+            # Acquire file lock with 10s timeout
+            with FileLock(str(lock_path), timeout=10):
+                # Load existing state
+                if state_path.exists():
+                    with open(state_path, 'r', encoding='utf-8') as f:
+                        state = json.load(f)
+                else:
+                    state = {}
 
-        # Update progress
-        state["extraction_progress"] = current
-        state["extraction_total"] = total
-        state["updated_at"] = datetime.now().isoformat()
+                # Update progress
+                state["extraction_progress"] = current
+                state["extraction_total"] = total
+                state["updated_at"] = datetime.now().isoformat()
 
-        # Save state
-        with open(state_path, 'w', encoding='utf-8') as f:
-            json.dump(state, f, ensure_ascii=False, indent=2)
+                # Save state
+                with open(state_path, 'w', encoding='utf-8') as f:
+                    json.dump(state, f, ensure_ascii=False, indent=2)
+
+        except Timeout:
+            print(f"[WARN] Failed to acquire lock for state update (job {self.job_id}). Progress update skipped.")
+        except Exception as e:
+            print(f"[ERROR] State update failed for job {self.job_id}: {e}")
 
 
 def extract_knowledge_async(job_id: str, chunks: List[Dict[str, Any]]) -> Dict[str, Any]:

@@ -167,7 +167,8 @@ class KnowledgeGraphBuilder:
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.3,
-                max_tokens=2000
+                max_tokens=2000,
+                timeout=60  # 60s timeout to prevent hanging
             )
 
             content = response.choices[0].message.content.strip()

@@ -20,6 +20,7 @@ openai>=1.0.0       # DeepSeek compatible
 numpy>=1.24.0
 pandas>=2.0.0
 python-dotenv>=1.0.0
+filelock>=3.12.0  # File locking for concurrent state updates
 
 # P1/P2 dependencies (documented, not installed in P0)
 # docling>=1.0.0

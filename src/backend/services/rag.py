@@ -254,7 +254,8 @@ class RAGPipeline:
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.3,
-                max_tokens=1000
+                max_tokens=1000,
+                timeout=60  # 60s timeout to prevent hanging
             )
 
             answer = response.choices[0].message.content.strip()
