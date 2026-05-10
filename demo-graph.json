@@ -1,0 +1,294 @@
+[
+  {
+    "data": {
+      "id": "n1",
+      "label": "心脏",
+      "category": "器官",
+      "definition": "循环系统的中枢器官，负责泵血功能",
+      "textbook": "03_生理学.pdf",
+      "source_page": "45",
+      "source_chunk": "心脏是循环系统的动力器官，通过节律性收缩和舒张推动血液循环...",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "n2",
+      "label": "心肌细胞",
+      "category": "细胞",
+      "definition": "构成心肌的基本单位，具有自律性和传导性",
+      "textbook": "03_生理学.pdf",
+      "source_page": "46",
+      "source_chunk": "心肌细胞是心脏收缩的基本单位，分为工作细胞和自律细胞...",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "n3",
+      "label": "动作电位",
+      "category": "生理过程",
+      "definition": "细胞膜电位的快速变化过程",
+      "textbook": "03_生理学.pdf",
+      "source_page": "47",
+      "source_chunk": "心肌细胞的动作电位具有平台期，持续时间较长...",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "n4",
+      "label": "钙离子",
+      "category": "分子",
+      "definition": "心肌收缩的关键调节因子",
+      "textbook": "03_生理学.pdf",
+      "source_page": "48",
+      "source_chunk": "钙离子内流是心肌兴奋-收缩耦联的关键环节...",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "n5",
+      "label": "心输出量",
+      "category": "生理指标",
+      "definition": "每分钟心脏射出的血液总量",
+      "textbook": "03_生理学.pdf",
+      "source_page": "52",
+      "source_chunk": "心输出量=心率×每搏输出量，是评价心功能的重要指标...",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "n6",
+      "label": "血压",
+      "category": "生理指标",
+      "definition": "血液对血管壁的侧压力",
+      "textbook": "03_生理学.pdf",
+      "source_page": "58",
+      "source_chunk": "动脉血压的形成取决于心输出量和外周阻力...",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "n7",
+      "label": "压力感受器",
+      "category": "感受器",
+      "definition": "感受血压变化的感觉神经末梢",
+      "textbook": "03_生理学.pdf",
+      "source_page": "60",
+      "source_chunk": "主动脉弓和颈动脉窦的压力感受器是血压调节的重要反馈机制...",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "n8",
+      "label": "交感神经",
+      "category": "神经系统",
+      "definition": "自主神经系统的一部分，调节心血管功能",
+      "textbook": "03_生理学.pdf",
+      "source_page": "62",
+      "source_chunk": "交感神经兴奋可增强心肌收缩力，加快心率...",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "n9",
+      "label": "肾素-血管紧张素系统",
+      "category": "调节系统",
+      "definition": "调节血压和水盐平衡的重要体液系统",
+      "textbook": "03_生理学.pdf",
+      "source_page": "65",
+      "source_chunk": "肾素-血管紧张素-醛固酮系统是长期血压调节的重要机制...",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "n10",
+      "label": "心电图",
+      "category": "检查方法",
+      "definition": "记录心脏电活动的图形",
+      "textbook": "03_生理学.pdf",
+      "source_page": "50",
+      "source_chunk": "心电图反映心脏兴奋的产生、传导和恢复过程...",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "n11",
+      "label": "冠状动脉",
+      "category": "血管",
+      "definition": "供应心肌血液的动脉",
+      "textbook": "03_生理学.pdf",
+      "source_page": "55",
+      "source_chunk": "冠状动脉血流主要在心舒期进行，受代谢调节...",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "n12",
+      "label": "心肌收缩力",
+      "category": "生理特性",
+      "definition": "心肌产生张力和缩短的能力",
+      "textbook": "03_生理学.pdf",
+      "source_page": "49",
+      "source_chunk": "心肌收缩力受前负荷、后负荷和心肌收缩性影响...",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "n13",
+      "label": "心脏瓣膜",
+      "category": "结构",
+      "definition": "控制血流单向流动的结构",
+      "textbook": "03_生理学.pdf",
+      "source_page": "44",
+      "source_chunk": "房室瓣和半月瓣保证血液单向流动，防止返流...",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "n14",
+      "label": "心动周期",
+      "category": "生理过程",
+      "definition": "心脏一次收缩和舒张构成的周期",
+      "textbook": "03_生理学.pdf",
+      "source_page": "51",
+      "source_chunk": "心动周期包括收缩期和舒张期，心率加快时主要缩短舒张期...",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "n15",
+      "label": "外周阻力",
+      "category": "生理指标",
+      "definition": "血液流动时受到的阻力",
+      "textbook": "03_生理学.pdf",
+      "source_page": "59",
+      "source_chunk": "外周阻力主要由小动脉和微动脉的口径决定...",
+      "neighbors": []
+    }
+  },
+  {
+    "data": {
+      "id": "e1",
+      "source": "n2",
+      "target": "n1"
+    }
+  },
+  {
+    "data": {
+      "id": "e2",
+      "source": "n3",
+      "target": "n2"
+    }
+  },
+  {
+    "data": {
+      "id": "e3",
+      "source": "n4",
+      "target": "n3"
+    }
+  },
+  {
+    "data": {
+      "id": "e4",
+      "source": "n4",
+      "target": "n12"
+    }
+  },
+  {
+    "data": {
+      "id": "e5",
+      "source": "n12",
+      "target": "n5"
+    }
+  },
+  {
+    "data": {
+      "id": "e6",
+      "source": "n1",
+      "target": "n5"
+    }
+  },
+  {
+    "data": {
+      "id": "e7",
+      "source": "n5",
+      "target": "n6"
+    }
+  },
+  {
+    "data": {
+      "id": "e8",
+      "source": "n15",
+      "target": "n6"
+    }
+  },
+  {
+    "data": {
+      "id": "e9",
+      "source": "n7",
+      "target": "n8"
+    }
+  },
+  {
+    "data": {
+      "id": "e10",
+      "source": "n8",
+      "target": "n1"
+    }
+  },
+  {
+    "data": {
+      "id": "e11",
+      "source": "n8",
+      "target": "n15"
+    }
+  },
+  {
+    "data": {
+      "id": "e12",
+      "source": "n9",
+      "target": "n6"
+    }
+  },
+  {
+    "data": {
+      "id": "e13",
+      "source": "n3",
+      "target": "n10"
+    }
+  },
+  {
+    "data": {
+      "id": "e14",
+      "source": "n11",
+      "target": "n2"
+    }
+  },
+  {
+    "data": {
+      "id": "e15",
+      "source": "n13",
+      "target": "n1"
+    }
+  },
+  {
+    "data": {
+      "id": "e16",
+      "source": "n14",
+      "target": "n5"
+    }
+  }
+]

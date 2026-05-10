@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -rf src/frontend/*)",
+      "Bash(cp -r src/frontend_new/dist/* src/frontend/)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'Add file validation and better error handling *)",
+      "Bash(git push *)"
+    ]
+  }
+}

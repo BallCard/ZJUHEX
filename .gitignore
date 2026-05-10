@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+
+# Textbook data (do not upload to GitHub)
+data/textbooks/*.pdf
+textbooks/*.pdf
+textbooks/*.zip
+*.pdf
+!docs/*.pdf
+
+# Textbook skills (large files)
+textbooks-skills/
+
+# Temporary extracted files
+赛题内容.txt
+
+# Vector database
+*.faiss
+*.index
+chroma_db/
+
+# Runtime outputs
+data/runtime/
+src/backend/data/
+src/backend/report/
+report/整合报告_*.md
