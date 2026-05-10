@@ -193,7 +193,7 @@ def build_graph(job_id: str, max_chunks: int = 3):
 
     Args:
         job_id: Job identifier
-        max_chunks: Maximum chunks to process (P0: 10)
+        max_chunks: Maximum chunks to process (P0: 3 for small sample validation)
 
     Returns:
         nodes_count: Number of nodes
