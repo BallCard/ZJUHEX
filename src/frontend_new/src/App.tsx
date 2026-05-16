@@ -106,7 +106,7 @@ export default function App() {
 
   // Task 1: Progress Polling
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
 
     if (jobId && progress.status === 'processing') {
       interval = setInterval(async () => {

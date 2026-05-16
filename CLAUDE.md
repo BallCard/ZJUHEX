@@ -42,12 +42,14 @@ pip install -r requirements.txt
 ### Running the Application
 
 ```bash
-# Backend (FastAPI)
+# Frontend (React TypeScript)
+cd src/frontend_new
+npm install
+npm run dev
+
+# Backend (FastAPI) - 已不维护，frontend_new有独立数据流
 cd src/backend
 uvicorn main:app --reload --port 8000
-
-# Frontend (P0: Single HTML file)
-# Open src/frontend/index.html in browser
 ```
 
 ## Project Structure
@@ -55,7 +57,7 @@ uvicorn main:app --reload --port 8000
 ```
 Hex/
 ├── src/
-│   ├── backend/          # FastAPI后端
+│   ├── backend/          # FastAPI后端（已不维护，仅保留参考）
 │   │   ├── main.py       # 主入口 + API路由
 │   │   └── services/     # 业务逻辑
 │   │       ├── parser.py           # 文档解析 (MinerU)
@@ -63,8 +65,14 @@ Hex/
 │   │       ├── integration.py      # 去重整合 (sentence-transformers)
 │   │       ├── report_generator.py # 整合报告生成
 │   │       └── rag.py              # RAG问答 (FAISS + citations)
-│   └── frontend/         # 前端
-│       └── index.html    # P0: 单HTML文件 (Cytoscape.js)
+│   ├── frontend/         # 旧版前端（单HTML文件，已废弃）
+│   └── frontend_new/     # 前端（React TypeScript，当前主力）
+│       ├── src/
+│       │   ├── App.tsx           # 主组件
+│       │   ├── components/       # React组件
+│       │   ├── data/             # 静态数据和demo数据
+│       │   └── services/         # 前端服务层
+│       └── public/               # 静态资源
 ├── docs/                 # 开发文档
 │   ├── mvp-p0-implementation-plan.md  # 实施计划 (已优化)
 │   ├── Agent架构说明.md               # 架构设计 (20分关键)
@@ -84,6 +92,8 @@ Hex/
 │           └── chunks_for_rag.json
 └── 开发哲学.md           # 方法论约束
 ```
+
+**前端说明**: `src/frontend_new/` 是当前主力前端（React TypeScript），`src/frontend/` 为旧版单HTML已废弃。FastAPI后端不再维护，frontend_new有独立的模拟数据流。
 
 ## Key Technical Decisions
 
