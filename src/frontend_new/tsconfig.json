@@ -17,10 +17,13 @@
     "jsx": "react-jsx",
     "paths": {
       "@/*": [
-        "./*"
+        "./src/*"
       ]
     },
     "allowImportingTsExtensions": true,
-    "noEmit": true
-  }
+    "noEmit": true,
+    "types": ["vite/client", "node"]
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "tests"]
 }
