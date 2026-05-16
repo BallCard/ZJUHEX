@@ -71,10 +71,6 @@ jobs:
   backend-test:
     name: Backend Tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: src/backend
-
     steps:
       - uses: actions/checkout@v4
 
