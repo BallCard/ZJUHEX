@@ -63,7 +63,6 @@ npm run dev
 | Secret | 说明 | 必需 |
 |--------|------|------|
 | `DEEPSEEK_API_KEY` | DeepSeek API 密钥（后端测试） | 是 |
-| `GEMINI_API_KEY` | Gemini API 密钥（E2E 测试） | E2E 测试需要 |
 
 ### 查看部署状态
 

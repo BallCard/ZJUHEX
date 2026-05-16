@@ -94,7 +94,6 @@ jobs:
       - name: Run tests
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           pytest tests/ -v --tb=short --ignore=tests/test_e2e.py --ignore=tests/test_integration_async.py -x || true
 
@@ -191,8 +190,6 @@ jobs:
         run: |
           npm run dev &
           npx wait-on http://localhost:3000 --timeout 60000
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       - name: Run E2E tests
         run: npx playwright test
