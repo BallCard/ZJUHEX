@@ -1,8 +1,8 @@
 import fitz
 import sys
 
-pdf_path = r'D:\Workspace\competitions\Hex\第一届AI全栈黑客松赛题.pdf'
-output_path = r'D:\Workspace\competitions\Hex\competition_requirements.txt'
+pdf_path = r'D:\Workspace\competitions\hex\第一届AI全栈黑客松赛题.pdf'
+output_path = r'D:\Workspace\competitions\hex\competition_requirements.txt'
 
 doc = fitz.open(pdf_path)
 

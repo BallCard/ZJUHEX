@@ -1,5 +1,11 @@
 # 学科知识整合智能体
 
+| 状态 | 用途 | 入口 | 验证命令 | GitHub | 下一步 |
+| --- | --- | --- | --- | --- | --- |
+| `archived` | 医学教材知识整合黑客松原型 | `src/backend/main.py`、`src/frontend_new/` | `python -m pytest tests -q`；前端 `npm run build` | `BallCard/ZJUHEX` | 仅在复盘或演示需要时恢复维护 |
+
+归档结论见 `docs/PROJECT_STORY.md` 和 `docs/ACCEPTANCE.md`。
+
 AI全栈黑客松赛题项目 - 医学教材知识整合系统
 
 ## 项目简介

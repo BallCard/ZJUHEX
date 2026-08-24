@@ -317,7 +317,7 @@ GET  /api/report/{job_id}           # 获取整合报告
 
 ## 当前`index.html`位置
 
-文件路径: `D:\Workspace\competitions\Hex\src\frontend\index.html`
+文件路径: `D:\Workspace\competitions\hex\src\frontend\index.html`
 
 你可以直接读取该文件，在其基础上进行优化。
 

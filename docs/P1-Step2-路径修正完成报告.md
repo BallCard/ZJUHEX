@@ -92,20 +92,20 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 从项目根目录启动:
 ```
-PROJECT_ROOT: D:\Workspace\competitions\Hex
-REPORT_DIR: D:\Workspace\competitions\Hex\report
+PROJECT_ROOT: D:\Workspace\competitions\hex
+REPORT_DIR: D:\Workspace\competitions\hex\report
 ```
 
 从 `/tmp` 启动:
 ```
-PROJECT_ROOT: D:\Workspace\competitions\Hex
-REPORT_DIR: D:\Workspace\competitions\Hex\report
+PROJECT_ROOT: D:\Workspace\competitions\hex
+REPORT_DIR: D:\Workspace\competitions\hex\report
 ```
 
 从 `C:/Windows/Temp` 启动:
 ```
-PROJECT_ROOT: D:\Workspace\competitions\Hex
-REPORT_DIR: D:\Workspace\competitions\Hex\report
+PROJECT_ROOT: D:\Workspace\competitions\hex
+REPORT_DIR: D:\Workspace\competitions\hex\report
 ```
 
 **结论**: 路径完全独立于启动目录 ✓
@@ -124,9 +124,9 @@ grep -r '"report/' src/backend  # 0 matches (除注释外)
 
 ### 3. 服务集成验证
 
-- Job状态保存到: `D:\Workspace\competitions\Hex\data\runtime\jobs\test_integration\state.json` ✓
-- 报告生成到: `D:\Workspace\competitions\Hex\report\整合报告_test_report.md` ✓
-- RAG索引保存到: `D:\Workspace\competitions\Hex\data\runtime\jobs\test_rag\` ✓
+- Job状态保存到: `D:\Workspace\competitions\hex\data\runtime\jobs\test_integration\state.json` ✓
+- 报告生成到: `D:\Workspace\competitions\hex\report\整合报告_test_report.md` ✓
+- RAG索引保存到: `D:\Workspace\competitions\hex\data\runtime\jobs\test_rag\` ✓
 
 **结论**: 所有服务正确使用统一路径 ✓
 

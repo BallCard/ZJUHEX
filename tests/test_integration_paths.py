@@ -159,7 +159,7 @@ def test_paths_from_different_directory():
 
             # Verify paths point to project, not temp directory
             assert str(PROJECT_ROOT) != tmp_dir
-            assert "Hex" in str(PROJECT_ROOT)
+            assert PROJECT_ROOT.name.lower() == "hex"
 
             print(f"[OK] Paths remain correct from different directory")
 
